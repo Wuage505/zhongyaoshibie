@@ -84,8 +84,9 @@
         }
         /* 移动端按钮适配 */
         .mobile-btn {
-            min-height: 48px; /* 符合移动端可点击区域标准 */
-            min-width: 48px;
+            min-height: 56px; /* 符合移动端可点击区域标准 */
+            min-width: 56px;
+            font-size: 16px;
         }
         /* 加载进度条 */
         .model-progress {
@@ -113,6 +114,35 @@
             margin-bottom: 16px;
             display: none;
         }
+        /* 深色模式适配 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1f2937;
+                color: #fff;
+            }
+            .media-container {
+                background-color: #111827;
+            }
+            .result-card {
+                background-color: #374151;
+                color: #fff;
+            }
+            .prob-item {
+                background-color: #4b5563;
+                color: #fff;
+            }
+            .prob-item.highlight {
+                background-color: #1e3a8a;
+            }
+            .herb-tips {
+                background-color: #4b5563;
+                color: #e5e7eb;
+            }
+            #reset-btn {
+                background-color: #5865f2;
+                color: #fff;
+            }
+        }
     </style>
 </head>
 <body class="p-4 max-w-md mx-auto">
@@ -123,10 +153,10 @@
 
     <!-- 标题区域 -->
     <div class="text-center mb-6">
-        <h1 class="text-[clamp(1.5rem,5vw,2rem)] font-bold text-green-700">
+        <h1 class="text-[clamp(1.5rem,5vw,2rem)] font-bold text-green-700 dark:text-green-400">
             <i class="fa fa-leaf mr-2"></i>中药识别
         </h1>
-        <p class="text-gray-500 text-sm">支持拍照或上传图片识别：枸杞、菊花、人参、甘草、金银花</p>
+        <p class="text-gray-500 dark:text-gray-300 text-sm">支持拍照或上传图片识别：枸杞、菊花、人参、甘草、金银花</p>
         
         <!-- 模型加载进度 -->
         <div class="model-progress mx-auto max-w-xs">
@@ -154,60 +184,60 @@
 
     <!-- 控制按钮 -->
     <div class="flex flex-wrap justify-center gap-3 mb-6">
-        <button id="start-cam-btn" class="btn mobile-btn bg-blue-500 hover:bg-blue-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed">
+        <button id="start-cam-btn" class="btn mobile-btn bg-blue-500 hover:bg-blue-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700">
             <i class="fa fa-video-camera mr-2"></i> 相机识别
         </button>
-        <label for="image-upload" class="btn mobile-btn bg-purple-500 hover:bg-purple-600 text-white px-5 py-3 rounded-full flex items-center shadow-md cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed">
+        <label for="image-upload" class="btn mobile-btn bg-purple-500 hover:bg-purple-600 text-white px-5 py-3 rounded-full flex items-center shadow-md cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-purple-600 dark:hover:bg-purple-700">
             <i class="fa fa-upload mr-2"></i> 上传图片
         </label>
         <input type="file" id="image-upload" accept="image/*">
-        <button id="identify-btn" class="btn mobile-btn bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed">
+        <button id="identify-btn" class="btn mobile-btn bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-green-600 dark:hover:bg-green-700">
             <i class="fa fa-search mr-2"></i> 开始识别
         </button>
     </div>
 
     <!-- 结果展示区域 -->
-    <div id="result-card" class="result-card bg-white rounded-xl shadow-md p-5 mb-6">
-        <h2 class="text-xl font-semibold text-center mb-4">识别结果</h2>
+    <div id="result-card" class="result-card bg-white rounded-xl shadow-md p-5 mb-6 dark:bg-gray-800">
+        <h2 class="text-xl font-semibold text-center mb-4 dark:text-white">识别结果</h2>
         <div class="text-center mb-4">
-            <p id="prediction" class="text-[clamp(1.5rem,5vw,2rem)] font-bold text-purple-600">--</p>
-            <p id="confidence" class="text-gray-500">可信度：--%</p>
+            <p id="prediction" class="text-[clamp(1.5rem,5vw,2rem)] font-bold text-purple-600 dark:text-purple-400">--</p>
+            <p id="confidence" class="text-gray-500 dark:text-gray-300">可信度：--%</p>
         </div>
         <!-- 概率分布（5种药材） -->
         <div class="grid grid-cols-2 gap-3 mb-2">
-            <div class="prob-item bg-gray-50 p-3 rounded-lg" data-herb="枸杞">
-                <p class="text-sm text-gray-500">枸杞</p>
-                <p id="wolfberry" class="font-bold text-red-500">--%</p>
+            <div class="prob-item bg-gray-50 p-3 rounded-lg dark:bg-gray-700" data-herb="枸杞">
+                <p class="text-sm text-gray-500 dark:text-gray-300">枸杞</p>
+                <p id="wolfberry" class="font-bold text-red-500 dark:text-red-400">--%</p>
             </div>
-            <div class="prob-item bg-gray-50 p-3 rounded-lg" data-herb="菊花">
-                <p class="text-sm text-gray-500">菊花</p>
-                <p id="chrysanthemum" class="font-bold text-yellow-500">--%</p>
+            <div class="prob-item bg-gray-50 p-3 rounded-lg dark:bg-gray-700" data-herb="菊花">
+                <p class="text-sm text-gray-500 dark:text-gray-300">菊花</p>
+                <p id="chrysanthemum" class="font-bold text-yellow-500 dark:text-yellow-400">--%</p>
             </div>
-            <div class="prob-item bg-gray-50 p-3 rounded-lg" data-herb="人参">
-                <p class="text-sm text-gray-500">人参</p>
-                <p id="ginseng" class="font-bold text-orange-500">--%</p>
+            <div class="prob-item bg-gray-50 p-3 rounded-lg dark:bg-gray-700" data-herb="人参">
+                <p class="text-sm text-gray-500 dark:text-gray-300">人参</p>
+                <p id="ginseng" class="font-bold text-orange-500 dark:text-orange-400">--%</p>
             </div>
-            <div class="prob-item bg-gray-50 p-3 rounded-lg" data-herb="甘草">
-                <p class="text-sm text-gray-500">甘草</p>
-                <p id="liquorice" class="font-bold text-blue-500">--%</p>
+            <div class="prob-item bg-gray-50 p-3 rounded-lg dark:bg-gray-700" data-herb="甘草">
+                <p class="text-sm text-gray-500 dark:text-gray-300">甘草</p>
+                <p id="liquorice" class="font-bold text-blue-500 dark:text-blue-400">--%</p>
             </div>
-            <div class="prob-item bg-gray-50 p-3 rounded-lg col-span-2" data-herb="金银花">
-                <p class="text-sm text-gray-500">金银花</p>
-                <p id="honeysuckle" class="font-bold text-green-500">--%</p>
+            <div class="prob-item bg-gray-50 p-3 rounded-lg col-span-2 dark:bg-gray-700" data-herb="金银花">
+                <p class="text-sm text-gray-500 dark:text-gray-300">金银花</p>
+                <p id="honeysuckle" class="font-bold text-green-500 dark:text-green-400">--%</p>
             </div>
         </div>
         <!-- 药材小知识 -->
-        <div id="herb-tips" class="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
-            <p><i class="fa fa-info-circle mr-1 text-blue-500"></i> 识别结果后将显示对应药材的简要介绍</p>
+        <div id="herb-tips" class="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-600 dark:bg-gray-700 dark:text-gray-200">
+            <p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i> 识别结果后将显示对应药材的简要介绍</p>
         </div>
         <!-- 重新识别按钮 -->
-        <button id="reset-btn" class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg btn mobile-btn">
+        <button id="reset-btn" class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg btn mobile-btn dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500">
             <i class="fa fa-refresh mr-1"></i> 重新识别
         </button>
     </div>
 
     <!-- 状态提示 -->
-    <div id="status" class="text-center text-gray-500 text-sm py-2">
+    <div id="status" class="text-center text-gray-500 dark:text-gray-300 text-sm py-2">
         <i class="fa fa-circle-o-notch fa-spin mr-1 loading-spinner"></i> 加载模型中...
     </div>
 
@@ -285,7 +315,7 @@
 
                     // 归一化概率
                     const total = scores.reduce((a, b) => a + b, 0);
-                    const normalizedScores = scores.map(s => s / total);
+                    const normalizedScores = scores.map(s => total === 0 ? 0 : s / total);
 
                     const maxScore = Math.max(...normalizedScores);
                     const predictedIndex = normalizedScores.indexOf(maxScore);
@@ -312,6 +342,7 @@
         }
 
         // 全局变量
+        // 若模型部署在远程，替换为实际HTTPS地址：new HerbModelHandler('https://xxx.com/model/model.json')
         const modelHandler = new HerbModelHandler();
         let webcam = null;
         let currentMode = null;
@@ -348,7 +379,7 @@
         });
         window.addEventListener('offline', () => {
             offlineAlert.style.display = 'block';
-            statusElement.innerHTML = `<span class="text-red-500"><i class="fa fa-exclamation-circle mr-1"></i>网络已断开</span>`;
+            statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>网络已断开</span>`;
         });
 
         // 页面加载完成后初始化模型
@@ -370,7 +401,7 @@
                 startCamBtn.disabled = false;
                 imageUpload.disabled = false;
             } else {
-                statusElement.innerHTML = `<span class="text-red-500"><i class="fa fa-exclamation-circle mr-1"></i>模型加载失败：请检查model文件夹</span>`;
+                statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>模型加载失败：请检查model文件夹或网络</span>`;
             }
         };
 
@@ -388,9 +419,9 @@
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: { 
                         facingMode: { ideal: 'environment' },
-                        width: { ideal: 480, max: 640 },
-                        height: { ideal: 640, max: 800 },
-                        frameRate: { ideal: 30, max: 30 }
+                        width: { ideal: 320, max: 480 },
+                        height: { ideal: 480, max: 640 },
+                        frameRate: { ideal: 20, max: 30 } // 降低帧率减少卡顿
                     }
                 });
 
@@ -408,17 +439,17 @@
                 if (error.message.includes('facingMode')) {
                     try {
                         const stream = await navigator.mediaDevices.getUserMedia({
-                            video: { width: { ideal: 480 }, height: { ideal: 640 } }
+                            video: { width: { ideal: 320 }, height: { ideal: 480 } }
                         });
                         webcamElement.srcObject = stream;
                         webcam = await tf.data.webcam(webcamElement);
                         identifyBtn.disabled = false;
                         statusElement.textContent = '使用前置摄像头，请对准药材';
                     } catch (e) {
-                        statusElement.innerHTML = `<span class="text-red-500"><i class="fa fa-exclamation-circle mr-1"></i>相机打开失败：请允许权限</span>`;
+                        statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>相机打开失败：请允许权限</span>`;
                     }
                 } else {
-                    statusElement.innerHTML = `<span class="text-red-500"><i class="fa fa-exclamation-circle mr-1"></i>相机打开失败：请允许权限</span>`;
+                    statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>相机打开失败：请允许权限或使用HTTPS</span>`;
                 }
                 console.error('相机错误：', error);
             }
@@ -432,14 +463,14 @@
             // 图片格式和大小校验
             const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
             if (!validTypes.includes(file.type)) {
-                statusElement.innerHTML = `<span class="text-red-500"><i class="fa fa-exclamation-circle mr-1"></i>请上传JPG/PNG格式图片</span>`;
+                statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>请上传JPG/PNG格式图片</span>`;
                 return;
             }
             
             // 限制图片大小（移动端避免过大图片）
             const maxSize = 5 * 1024 * 1024; // 5MB
             if (file.size > maxSize) {
-                statusElement.innerHTML = `<span class="text-red-500"><i class="fa fa-exclamation-circle mr-1"></i>图片大小不超过5MB</span>`;
+                statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>图片大小不超过5MB</span>`;
                 return;
             }
 
@@ -500,7 +531,7 @@
                     });
 
                     // 显示药材知识
-                    herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500"></i>${herbKnowledge[result.predictedClass]}</p>`;
+                    herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i>${herbKnowledge[result.predictedClass]}</p>`;
 
                     resultCard.classList.add('show');
                     statusElement.textContent = '识别完成';
@@ -508,7 +539,7 @@
                     throw new Error('无法获取识别结果');
                 }
             } catch (error) {
-                statusElement.innerHTML = `<span class="text-red-500"><i class="fa fa-exclamation-circle mr-1"></i>识别失败：${error.message}</span>`;
+                statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>识别失败：${error.message}</span>`;
                 identifyBtn.disabled = false;
             } finally {
                 loadingMask.classList.add('hidden');
@@ -533,7 +564,7 @@
             document.querySelectorAll('.prob-item').forEach(item => item.classList.remove('highlight'));
             
             // 重置药材知识
-            herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500"></i> 识别结果后将显示对应药材的简要介绍</p>`;
+            herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i> 识别结果后将显示对应药材的简要介绍</p>`;
             
             imageUpload.value = '';
             currentMode = null;
@@ -546,6 +577,15 @@
             if (resultCard.classList.contains('show')) {
                 resetBtn.click();
             }
+        });
+
+        // 窗口卸载时释放资源
+        window.addEventListener('beforeunload', () => {
+            if (webcamElement.srcObject) {
+                webcamElement.srcObject.getTracks().forEach(track => track.stop());
+            }
+            tf.disposeVariables();
+            tf.memory().unreliableCheck(true);
         });
     </script>
 </body>
