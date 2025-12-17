@@ -2,323 +2,551 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中药识别 - 枸杞与菊花</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <title>中药识别 - 五味药材</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <!-- 仅需加载TensorFlow.js核心库 -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/dist/tf.min.js"></script>
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            touch-action: manipulation; /* 禁用触屏双击缩放 */
+        }
+        .media-container {
+            position: relative;
+            width: 100%;
+            padding-top: 133%; /* 4:3比例 */
+            overflow: hidden;
+            border-radius: 16px;
+            background-color: #000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        #webcam, #uploaded-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        #uploaded-image {
+            display: none;
+        }
+        .btn {
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .result-card {
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            display: none;
+        }
+        .result-card.show {
+            transform: translateY(0);
+            opacity: 1;
+            display: block;
+        }
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        #image-upload {
+            display: none;
+        }
+        .loading-mask {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 16px;
+        }
+        .prob-item {
+            transition: all 0.2s ease;
+        }
+        .prob-item.highlight {
+            transform: scale(1.03);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background-color: #f0f9ff;
+        }
+        /* 移动端按钮适配 */
+        .mobile-btn {
+            min-height: 48px; /* 符合移动端可点击区域标准 */
+            min-width: 48px;
+        }
+        /* 加载进度条 */
+        .model-progress {
+            height: 2px;
+            background: #e5e7eb;
+            width: 100%;
+            margin: 10px 0;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #16a34a;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        /* 离线提示 */
+        .offline-alert {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            text-align: center;
+            margin-bottom: 16px;
+            display: none;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <header class="bg-white shadow-md fixed top-0 left-0 right-0 z-50">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <i class="fa fa-leaf text-green-500 text-2xl"></i>
-                <h1 class="text-xl font-bold">中药识别</h1>
-            </div>
-            <div id="status-indicator" class="text-sm text-gray-500">
-                <i class="fa fa-circle-o-notch fa-spin mr-1"></i>
-                <span>准备中...</span>
-            </div>
-        </div>
-    </header>
+<body class="p-4 max-w-md mx-auto">
+    <!-- 离线提示 -->
+    <div id="offline-alert" class="offline-alert">
+        <i class="fa fa-wifi-slash mr-1"></i> 检测到离线状态，模型加载失败
+    </div>
 
-    <main class="container mx-auto px-4 pt-20 pb-24">
-        <!-- 库加载提示 -->
-        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 text-sm">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fa fa-info-circle text-blue-400"></i>
-                </div>
-                <div class="ml-3">
-                    <p class="text-blue-700">请确保网络连接正常，以便加载识别所需的模型和库文件</p>
-                </div>
-            </div>
-        </div>
+    <!-- 标题区域 -->
+    <div class="text-center mb-6">
+        <h1 class="text-[clamp(1.5rem,5vw,2rem)] font-bold text-green-700">
+            <i class="fa fa-leaf mr-2"></i>中药识别
+        </h1>
+        <p class="text-gray-500 text-sm">支持拍照或上传图片识别：枸杞、菊花、人参、甘草、金银花</p>
         
-        <!-- 上传区域 -->
-        <div id="upload-area" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center mb-6 cursor-pointer transition-all hover:border-green-500 hover:bg-green-50">
-            <input type="file" id="image-upload" accept="image/*" class="hidden" />
-            <div class="flex flex-col items-center">
-                <i class="fa fa-cloud-upload text-5xl text-gray-400 mb-4"></i>
-                <h3 class="text-lg font-medium text-gray-700 mb-2">上传药材图片</h3>
-                <p class="text-sm text-gray-500 mb-4">点击或拖拽图片到此处（支持枸杞、菊花识别）</p>
-                <button id="browse-btn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm transition-all">
-                    选择图片
-                </button>
-            </div>
+        <!-- 模型加载进度 -->
+        <div class="model-progress mx-auto max-w-xs">
+            <div id="progress-bar" class="progress-bar"></div>
         </div>
-        
-        <!-- 预览和结果区域 -->
-        <div id="preview-container" class="hidden mb-6">
-            <div class="bg-white rounded-xl shadow p-4">
-                <h3 class="text-center text-gray-700 mb-3">图片预览</h3>
-                <div class="flex justify-center">
-                    <img id="preview-image" class="max-w-full max-h-64 object-contain rounded-lg" src="" alt="预览图片" />
-                </div>
-                <div class="flex justify-center mt-4">
-                    <button id="analyze-btn" class="bg-amber-700 hover:bg-amber-800 text-white px-6 py-2 rounded-lg text-sm transition-all" disabled>
-                        <i class="fa fa-search mr-1"></i> 请等待模型加载
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <div id="result-container" class="bg-white rounded-xl shadow p-6 mb-6 hidden">
-            <h2 class="text-lg font-semibold mb-4 text-center">识别结果</h2>
-            <div class="flex flex-col items-center">
-                <div id="result-image" class="w-48 h-48 rounded-lg overflow-hidden mb-4 border-2 border-gray-200">
-                </div>
-                <div id="prediction-result" class="text-center p-4 rounded-lg w-full max-w-xs">
-                </div>
-                <div class="grid grid-cols-2 gap-4 w-full max-w-xs mt-4">
-                    <div class="bg-gray-50 p-3 rounded-lg text-center">
-                        <div class="text-sm text-gray-500">枸杞概率</div>
-                        <div id="wolfberry-prob" class="font-semibold text-purple-600">-</div>
-                    </div>
-                    <div class="bg-gray-50 p-3 rounded-lg text-center">
-                        <div class="text-sm text-gray-500">菊花概率</div>
-                        <div id="chrysanthemum-prob" class="font-semibold text-yellow-600">-</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div id="herb-info" class="bg-white rounded-xl shadow p-5 mb-6 hidden">
-            <h2 id="herb-name" class="text-lg font-semibold mb-3"></h2>
-            <div id="herb-description" class="text-gray-600 text-sm">
-            </div>
-        </div>
-    </main>
+    </div>
 
-    <footer class="bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 py-3">
-        <div class="container mx-auto px-4 text-center text-sm text-gray-500">
-            <p>中药识别小程序 | 支持枸杞与菊花识别</p>
+    <!-- 媒体展示区域 -->
+    <div class="media-container mb-6 relative">
+        <video id="webcam" autoplay muted playsinline style="display: none;"></video>
+        <img id="uploaded-image" alt="上传的图片">
+        <!-- 初始提示 -->
+        <div id="media-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-white">
+            <i class="fa fa-camera text-5xl mb-3 opacity-70"></i>
+            <p class="text-sm opacity-70">点击下方按钮选择识别方式</p>
         </div>
-    </footer>
+        <!-- 加载遮罩 -->
+        <div id="loading-mask" class="loading-mask hidden">
+            <div class="flex flex-col items-center text-white">
+                <i class="fa fa-circle-o-notch loading-spinner text-4xl mb-2"></i>
+                <p class="text-sm">识别中，请稍候...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 控制按钮 -->
+    <div class="flex flex-wrap justify-center gap-3 mb-6">
+        <button id="start-cam-btn" class="btn mobile-btn bg-blue-500 hover:bg-blue-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed">
+            <i class="fa fa-video-camera mr-2"></i> 相机识别
+        </button>
+        <label for="image-upload" class="btn mobile-btn bg-purple-500 hover:bg-purple-600 text-white px-5 py-3 rounded-full flex items-center shadow-md cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed">
+            <i class="fa fa-upload mr-2"></i> 上传图片
+        </label>
+        <input type="file" id="image-upload" accept="image/*">
+        <button id="identify-btn" class="btn mobile-btn bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed">
+            <i class="fa fa-search mr-2"></i> 开始识别
+        </button>
+    </div>
+
+    <!-- 结果展示区域 -->
+    <div id="result-card" class="result-card bg-white rounded-xl shadow-md p-5 mb-6">
+        <h2 class="text-xl font-semibold text-center mb-4">识别结果</h2>
+        <div class="text-center mb-4">
+            <p id="prediction" class="text-[clamp(1.5rem,5vw,2rem)] font-bold text-purple-600">--</p>
+            <p id="confidence" class="text-gray-500">可信度：--%</p>
+        </div>
+        <!-- 概率分布（5种药材） -->
+        <div class="grid grid-cols-2 gap-3 mb-2">
+            <div class="prob-item bg-gray-50 p-3 rounded-lg" data-herb="枸杞">
+                <p class="text-sm text-gray-500">枸杞</p>
+                <p id="wolfberry" class="font-bold text-red-500">--%</p>
+            </div>
+            <div class="prob-item bg-gray-50 p-3 rounded-lg" data-herb="菊花">
+                <p class="text-sm text-gray-500">菊花</p>
+                <p id="chrysanthemum" class="font-bold text-yellow-500">--%</p>
+            </div>
+            <div class="prob-item bg-gray-50 p-3 rounded-lg" data-herb="人参">
+                <p class="text-sm text-gray-500">人参</p>
+                <p id="ginseng" class="font-bold text-orange-500">--%</p>
+            </div>
+            <div class="prob-item bg-gray-50 p-3 rounded-lg" data-herb="甘草">
+                <p class="text-sm text-gray-500">甘草</p>
+                <p id="liquorice" class="font-bold text-blue-500">--%</p>
+            </div>
+            <div class="prob-item bg-gray-50 p-3 rounded-lg col-span-2" data-herb="金银花">
+                <p class="text-sm text-gray-500">金银花</p>
+                <p id="honeysuckle" class="font-bold text-green-500">--%</p>
+            </div>
+        </div>
+        <!-- 药材小知识 -->
+        <div id="herb-tips" class="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+            <p><i class="fa fa-info-circle mr-1 text-blue-500"></i> 识别结果后将显示对应药材的简要介绍</p>
+        </div>
+        <!-- 重新识别按钮 -->
+        <button id="reset-btn" class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg btn mobile-btn">
+            <i class="fa fa-refresh mr-1"></i> 重新识别
+        </button>
+    </div>
+
+    <!-- 状态提示 -->
+    <div id="status" class="text-center text-gray-500 text-sm py-2">
+        <i class="fa fa-circle-o-notch fa-spin mr-1 loading-spinner"></i> 加载模型中...
+    </div>
 
     <script>
+        // 药材知识库
+        const herbKnowledge = {
+            枸杞: "枸杞：滋补肝肾，益精明目。用于虚劳精亏，腰膝酸痛，眩晕耳鸣，阳痿遗精，内热消渴，血虚萎黄，目昏不明。",
+            菊花: "菊花：散风清热，平肝明目，清热解毒。用于风热感冒，头痛眩晕，目赤肿痛，眼目昏花，疮痈肿毒。",
+            人参: "人参：大补元气，复脉固脱，益气摄血。用于体虚欲脱，肢冷脉微，气不摄血，崩漏下血；心力衰竭，心原性休克。",
+            甘草: "甘草：补脾益气，清热解毒，祛痰止咳，缓急止痛，调和诸药。用于脾胃虚弱，倦怠乏力，心悸气短，咳嗽痰多。",
+            金银花: "金银花：清热解毒，疏散风热。用于痈肿疔疮，喉痹，丹毒，热毒血痢，风热感冒，温病发热。"
+        };
+
+        // 模型处理核心类（扩展为5种药材）
+        class HerbModelHandler {
+            constructor(modelUrl = 'model/model.json', classNames = ['枸杞', '菊花', '人参', '甘草', '金银花']) {
+                this.modelUrl = modelUrl;
+                this.classNames = classNames;
+                this.model = null;
+                this.isLoaded = false;
+            }
+
+            // 加载模型（带进度回调）
+            async loadModel(onProgress) {
+                try {
+                    if (this.isLoaded) return true;
+                    
+                    // 配置TF.js优化
+                    tf.ENV.set('WEBGL_PACK_DEPTHWISECONV', false);
+                    tf.ENV.set('WEBGL_FORCE_F16_TEXTURES', true);
+                    
+                    // 监听模型加载进度
+                    const model = await tf.loadLayersModel(this.modelUrl, {
+                        onProgress: (progress) => {
+                            onProgress && onProgress(Math.floor(progress * 100));
+                        }
+                    });
+                    
+                    this.model = model;
+                    this.isLoaded = true;
+                    console.log('模型加载成功');
+                    return true;
+                } catch (error) {
+                    console.error('模型加载失败：', error);
+                    this.isLoaded = false;
+                    return false;
+                }
+            }
+
+            // 图像预处理（优化移动端性能）
+            preprocessImage(imgTensor) {
+                return tf.tidy(() => {
+                    const rgbTensor = imgTensor.shape[2] === 4 
+                        ? imgTensor.slice([0, 0, 0], [-1, -1, 3]) 
+                        : imgTensor;
+                    // 移动端使用更轻量的插值方式
+                    return rgbTensor.resizeBilinear([224, 224])
+                        .toFloat()
+                        .div(255.0)
+                        .expandDims(0);
+                });
+            }
+
+            // 执行推理（适配5分类）
+            async predict(imgTensor) {
+                if (!this.isLoaded || !this.model) {
+                    console.error('模型未加载');
+                    return null;
+                }
+
+                try {
+                    const processedImg = this.preprocessImage(imgTensor);
+                    const predictions = await this.model.predict(processedImg).data();
+                    const scores = Array.from(predictions);
+
+                    // 归一化概率
+                    const total = scores.reduce((a, b) => a + b, 0);
+                    const normalizedScores = scores.map(s => s / total);
+
+                    const maxScore = Math.max(...normalizedScores);
+                    const predictedIndex = normalizedScores.indexOf(maxScore);
+                    
+                    const result = {
+                        predictedClass: this.classNames[predictedIndex],
+                        confidence: (maxScore * 100).toFixed(1),
+                        probabilities: {
+                            枸杞: (normalizedScores[0] * 100).toFixed(1),
+                            菊花: (normalizedScores[1] * 100).toFixed(1),
+                            人参: (normalizedScores[2] * 100).toFixed(1),
+                            甘草: (normalizedScores[3] * 100).toFixed(1),
+                            金银花: (normalizedScores[4] * 100).toFixed(1)
+                        }
+                    };
+
+                    tf.dispose([imgTensor, processedImg]);
+                    return result;
+                } catch (error) {
+                    console.error('推理失败：', error);
+                    return null;
+                }
+            }
+        }
+
+        // 全局变量
+        const modelHandler = new HerbModelHandler();
+        let webcam = null;
+        let currentMode = null;
+
         // DOM元素
-        const statusIndicator = document.getElementById('status-indicator');
+        const startCamBtn = document.getElementById('start-cam-btn');
         const imageUpload = document.getElementById('image-upload');
-        const previewContainer = document.getElementById('preview-container');
-        const previewImage = document.getElementById('preview-image');
-        const analyzeBtn = document.getElementById('analyze-btn');
-        const resultContainer = document.getElementById('result-container');
-        const resultImage = document.getElementById('result-image');
-        const predictionResult = document.getElementById('prediction-result');
-        const herbInfo = document.getElementById('herb-info');
-        const herbName = document.getElementById('herb-name');
-        const herbDescription = document.getElementById('herb-description');
-        const wolfberryProb = document.getElementById('wolfberry-prob');
-        const chrysanthemumProb = document.getElementById('chrysanthemum-prob');
-        
-        // 变量初始化
-        let model;
-        const labels = ['枸杞', '菊花'];
-        let currentImage = null;
-        
-        // 中药信息
-        const herbData = {
-            '枸杞': { 
-                description: '枸杞是一种常见的中药材，具有滋补肝肾、益精明目的功效。常用于治疗肝肾阴虚、腰膝酸软、头晕目眩等症状。' 
-            },
-            '菊花': { 
-                description: '菊花是常用中药材，具有散风清热、平肝明目的功效。常用于治疗风热感冒、头痛眩晕、目赤肿痛等症状。' 
+        const identifyBtn = document.getElementById('identify-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const webcamElement = document.getElementById('webcam');
+        const uploadedImage = document.getElementById('uploaded-image');
+        const mediaPlaceholder = document.getElementById('media-placeholder');
+        const resultCard = document.getElementById('result-card');
+        const predictionElement = document.getElementById('prediction');
+        const confidenceElement = document.getElementById('confidence');
+        const statusElement = document.getElementById('status');
+        const loadingMask = document.getElementById('loading-mask');
+        const progressBar = document.getElementById('progress-bar');
+        const offlineAlert = document.getElementById('offline-alert');
+        const herbTips = document.getElementById('herb-tips');
+
+        // 概率显示元素映射
+        const probElements = {
+            枸杞: document.getElementById('wolfberry'),
+            菊花: document.getElementById('chrysanthemum'),
+            人参: document.getElementById('ginseng'),
+            甘草: document.getElementById('liquorice'),
+            金银花: document.getElementById('honeysuckle')
+        };
+
+        // 检测网络状态
+        window.addEventListener('online', () => {
+            offlineAlert.style.display = 'none';
+        });
+        window.addEventListener('offline', () => {
+            offlineAlert.style.display = 'block';
+            statusElement.innerHTML = `<span class="text-red-500"><i class="fa fa-exclamation-circle mr-1"></i>网络已断开</span>`;
+        });
+
+        // 页面加载完成后初始化模型
+        window.onload = async () => {
+            // 检测离线状态
+            if (!navigator.onLine) {
+                offlineAlert.style.display = 'block';
+            }
+
+            const loadSuccess = await modelHandler.loadModel((progress) => {
+                // 更新加载进度
+                progressBar.style.width = `${progress}%`;
+                statusElement.textContent = `加载模型中... ${progress}%`;
+            });
+            
+            progressBar.style.width = '100%';
+            if (loadSuccess) {
+                statusElement.textContent = '模型加载完成，请选择识别方式';
+                startCamBtn.disabled = false;
+                imageUpload.disabled = false;
+            } else {
+                statusElement.innerHTML = `<span class="text-red-500"><i class="fa fa-exclamation-circle mr-1"></i>模型加载失败：请检查model文件夹</span>`;
             }
         };
-        
-        // 初始化应用
-        function initApp() {
-            // 检查TensorFlow是否加载
-            if (typeof tf === 'undefined') {
-                statusIndicator.innerHTML = `
-                    <i class="fa fa-exclamation-triangle text-red-500 mr-1"></i>
-                    <span class="text-red-500">TensorFlow库加载失败，请检查网络</span>
-                `;
-                // 尝试重新加载
-                setTimeout(loadTFLibrary, 3000);
-                return;
-            }
-            
-            // 显示TensorFlow版本
-            statusIndicator.innerHTML = `<i class="fa fa-info-circle text-blue-500 mr-1"></i><span>已加载TensorFlow.js v${tf.version.tfjs}</span>`;
-            
-            // 加载模型
-            loadModel();
-        }
-        
-        // 加载TensorFlow库
-        function loadTFLibrary() {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/dist/tf.min.js';
-            script.onload = initApp;
-            document.head.appendChild(script);
-        }
-        
-        // 加载模型（使用model.json和weights.bin）
-        async function loadModel() {
+
+        // 相机识别模式（优化移动端兼容性）
+        startCamBtn.addEventListener('click', async () => {
             try {
-                statusIndicator.innerHTML = '<i class="fa fa-circle-o-notch fa-spin mr-1"></i><span>加载模型中...</span>';
+                statusElement.textContent = '正在打开相机...';
+                currentMode = 'camera';
                 
-                // 检查运行环境
-                if (window.location.protocol === 'file:') {
-                    throw new Error('请使用HTTP服务器运行（如localhost或GitHub Pages）');
-                }
+                uploadedImage.style.display = 'none';
+                mediaPlaceholder.classList.add('hidden');
+                webcamElement.style.display = 'block';
+
+                // 适配不同移动端的相机权限
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { 
+                        facingMode: { ideal: 'environment' },
+                        width: { ideal: 480, max: 640 },
+                        height: { ideal: 640, max: 800 },
+                        frameRate: { ideal: 30, max: 30 }
+                    }
+                });
+
+                webcamElement.srcObject = stream;
+                // 等待相机流加载完成
+                await new Promise(resolve => {
+                    webcamElement.onloadeddata = resolve;
+                });
+                webcam = await tf.data.webcam(webcamElement);
                 
-                // 模型地址（替换为你的GitHub Raw地址，指向model.json）
-                // 注意：model.json会自动加载同目录下的weights.bin
-                const modelUrl = 'https://raw.githubusercontent.com/Wuage505/shibie/refs/heads/main/model.json';
-                
-                // 先检查模型是否可访问
-                const response = await fetch(modelUrl, { method: 'HEAD' });
-                if (!response.ok) {
-                    throw new Error(`模型文件不存在，请检查地址是否正确 (${response.status})`);
-                }
-                
-                // 加载TensorFlow.js模型（核心修改：使用loadLayersModel）
-                model = await tf.loadLayersModel(modelUrl);
-                
-                // 验证模型
-                if (!model || typeof model.predict !== 'function') {
-                    throw new Error('模型加载不完整');
-                }
-                
-                statusIndicator.innerHTML = '<i class="fa fa-check text-green-500 mr-1"></i><span>模型加载完成</span>';
-                analyzeBtn.disabled = false;
-                analyzeBtn.innerHTML = '<i class="fa fa-search mr-1"></i> 开始识别';
-                
+                identifyBtn.disabled = false;
+                statusElement.textContent = '请对准药材，点击开始识别';
             } catch (error) {
-                console.error('模型加载失败:', error);
-                statusIndicator.innerHTML = `
-                    <i class="fa fa-exclamation-triangle text-red-500 mr-1"></i>
-                    <span class="text-red-500 text-xs">${error.message}</span>
-                `;
-            }
-        }
-        
-        // 处理图片上传
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            if (!file.type.match('image.*')) {
-                alert('请上传图片文件（JPG/PNG等）');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                currentImage = e.target.result;
-                previewImage.src = currentImage;
-                previewContainer.classList.remove('hidden');
-                resultContainer.classList.add('hidden');
-                herbInfo.classList.add('hidden');
-            }
-            reader.readAsDataURL(file);
-        }
-        
-        // 分析图片
-        async function analyzeImage() {
-            if (!model) {
-                alert('模型未加载成功，请先解决模型加载问题');
-                return;
-            }
-            if (!currentImage) return;
-            
-            statusIndicator.innerHTML = '<i class="fa fa-circle-o-notch fa-spin mr-1"></i><span>识别中...</span>';
-            analyzeBtn.disabled = true;
-            
-            const img = new Image();
-            img.src = currentImage;
-            
-            img.onload = async function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                // 使用模型要求的输入尺寸（Teachable Machine默认224x224）
-                canvas.width = 224;
-                canvas.height = 224;
-                ctx.drawImage(img, 0, 0, 224, 224);
-                
-                try {
-                    // 预处理图像（与训练时的预处理一致）
-                    let tensor = tf.browser.fromPixels(canvas)
-                        .resizeBilinear([224, 224])  // 确保尺寸正确
-                        .toFloat()
-                        .div(255.0)  // 归一化到0-1范围
-                        .expandDims(0);  // 添加批次维度
-                    
-                    // 模型预测（使用TensorFlow.js的predict方法）
-                    const predictions = model.predict(tensor);
-                    const scores = await predictions.data();
-                    
-                    // 解析结果
-                    const 枸杞概率 = (scores[0] * 100).toFixed(1);
-                    const 菊花概率 = (scores[1] * 100).toFixed(1);
-                    const 识别结果 = 枸杞概率 > 菊花概率 ? '枸杞' : '菊花';
-                    const 置信度 = Math.max(枸杞概率, 菊花概率);
-                    
-                    // 显示结果
-                    resultImage.innerHTML = `<img src="${currentImage}" class="w-full h-full object-cover" alt="识别的药材">`;
-                    predictionResult.innerHTML = `
-                        <div class="text-xl font-bold mb-1 ${confidence > 70 ? 'text-green-600' : 'text-orange-600'}">
-                            ${识别结果}
-                        </div>
-                        <div class="text-sm text-gray-500">
-                            可信度: ${confidence}%
-                        </div>
-                    `;
-                    
-                    // 显示概率
-                    wolfberryProb.textContent = `${枸杞概率}%`;
-                    chrysanthemumProb.textContent = `${菊花概率}%`;
-                    
-                    // 显示药材信息
-                    herbName.textContent = 识别结果 + ' 信息';
-                    herbDescription.textContent = herbData[识别结果].description;
-                    
-                    // 显示结果区域
-                    resultContainer.classList.remove('hidden');
-                    herbInfo.classList.remove('hidden');
-                    statusIndicator.innerHTML = '<i class="fa fa-check text-green-500 mr-1"></i><span>识别完成</span>';
-                    
-                } catch (error) {
-                    console.error('识别失败:', error);
-                    statusIndicator.innerHTML = '<i class="fa fa-exclamation-triangle text-yellow-500 mr-1"></i><span>识别失败，请重试</span>';
-                } finally {
-                    // 清理内存
-                    tf.disposeVariables();
-                    analyzeBtn.disabled = false;
+                // 兼容无后置摄像头的设备
+                if (error.message.includes('facingMode')) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({
+                            video: { width: { ideal: 480 }, height: { ideal: 640 } }
+                        });
+                        webcamElement.srcObject = stream;
+                        webcam = await tf.data.webcam(webcamElement);
+                        identifyBtn.disabled = false;
+                        statusElement.textContent = '使用前置摄像头，请对准药材';
+                    } catch (e) {
+                        statusElement.innerHTML = `<span class="text-red-500"><i class="fa fa-exclamation-circle mr-1"></i>相机打开失败：请允许权限</span>`;
+                    }
+                } else {
+                    statusElement.innerHTML = `<span class="text-red-500"><i class="fa fa-exclamation-circle mr-1"></i>相机打开失败：请允许权限</span>`;
                 }
-            };
-        }
-        
-        // 事件监听
-        document.getElementById('browse-btn').addEventListener('click', () => imageUpload.click());
-        imageUpload.addEventListener('change', handleImageUpload);
-        document.getElementById('upload-area').addEventListener('click', () => imageUpload.click());
-        analyzeBtn.addEventListener('click', analyzeImage);
-        
-        // 拖放功能
-        const uploadArea = document.getElementById('upload-area');
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('border-green-500', 'bg-green-50');
-        });
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('border-green-500', 'bg-green-50');
-        });
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('border-green-500', 'bg-green-50');
-            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                imageUpload.files = e.dataTransfer.files;
-                handleImageUpload({ target: imageUpload });
+                console.error('相机错误：', error);
             }
         });
-        
-        // 页面加载完成后初始化
-        window.addEventListener('load', initApp);
+
+        // 上传图片识别模式（优化移动端体验）
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // 图片格式和大小校验
+            const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                statusElement.innerHTML = `<span class="text-red-500"><i class="fa fa-exclamation-circle mr-1"></i>请上传JPG/PNG格式图片</span>`;
+                return;
+            }
+            
+            // 限制图片大小（移动端避免过大图片）
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                statusElement.innerHTML = `<span class="text-red-500"><i class="fa fa-exclamation-circle mr-1"></i>图片大小不超过5MB</span>`;
+                return;
+            }
+
+            currentMode = 'upload';
+            webcamElement.style.display = 'none';
+            mediaPlaceholder.classList.add('hidden');
+            uploadedImage.style.display = 'block';
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                uploadedImage.src = event.target.result;
+                uploadedImage.onload = () => {
+                    identifyBtn.disabled = false;
+                    statusElement.textContent = '图片已上传，点击开始识别';
+                };
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 开始识别
+        identifyBtn.addEventListener('click', async () => {
+            if (!modelHandler.isLoaded) return;
+
+            loadingMask.classList.remove('hidden');
+            statusElement.textContent = '识别中...';
+            identifyBtn.disabled = true;
+
+            try {
+                let imgTensor;
+
+                if (currentMode === 'camera' && webcam) {
+                    const img = await webcam.capture();
+                    imgTensor = img;
+                } else if (currentMode === 'upload' && uploadedImage.src) {
+                    imgTensor = tf.browser.fromPixels(uploadedImage);
+                } else {
+                    throw new Error('未获取到图像，请重试');
+                }
+
+                const result = await modelHandler.predict(imgTensor);
+
+                if (result) {
+                    // 更新识别结果
+                    predictionElement.textContent = result.predictedClass;
+                    confidenceElement.textContent = `可信度：${result.confidence}%`;
+                    
+                    // 更新所有药材概率
+                    Object.keys(probElements).forEach(herb => {
+                        probElements[herb].textContent = `${result.probabilities[herb]}%`;
+                    });
+
+                    // 高亮显示识别结果对应的药材
+                    document.querySelectorAll('.prob-item').forEach(item => {
+                        item.classList.remove('highlight');
+                        if (item.dataset.herb === result.predictedClass) {
+                            item.classList.add('highlight');
+                        }
+                    });
+
+                    // 显示药材知识
+                    herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500"></i>${herbKnowledge[result.predictedClass]}</p>`;
+
+                    resultCard.classList.add('show');
+                    statusElement.textContent = '识别完成';
+                } else {
+                    throw new Error('无法获取识别结果');
+                }
+            } catch (error) {
+                statusElement.innerHTML = `<span class="text-red-500"><i class="fa fa-exclamation-circle mr-1"></i>识别失败：${error.message}</span>`;
+                identifyBtn.disabled = false;
+            } finally {
+                loadingMask.classList.add('hidden');
+            }
+        });
+
+        // 重新识别
+        resetBtn.addEventListener('click', () => {
+            resultCard.classList.remove('show');
+            webcamElement.style.display = 'none';
+            uploadedImage.style.display = 'none';
+            mediaPlaceholder.classList.remove('hidden');
+            
+            // 停止相机流
+            if (currentMode === 'camera' && webcamElement.srcObject) {
+                webcamElement.srcObject.getTracks().forEach(track => track.stop());
+                webcam = null;
+            }
+            
+            // 重置概率显示
+            Object.values(probElements).forEach(el => el.textContent = '--%');
+            document.querySelectorAll('.prob-item').forEach(item => item.classList.remove('highlight'));
+            
+            // 重置药材知识
+            herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500"></i> 识别结果后将显示对应药材的简要介绍</p>`;
+            
+            imageUpload.value = '';
+            currentMode = null;
+            identifyBtn.disabled = true;
+            statusElement.textContent = '请选择识别方式（相机/上传图片）';
+        });
+
+        // 移动端返回键处理
+        document.addEventListener('backbutton', () => {
+            if (resultCard.classList.contains('show')) {
+                resetBtn.click();
+            }
+        });
     </script>
 </body>
 </html>
