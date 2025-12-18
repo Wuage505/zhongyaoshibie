@@ -138,11 +138,13 @@
             margin-top: 8px;
             padding-top: 8px;
             border-top: 1px dashed #d1d5db;
+            dark:border-top: 1px dashed #4b5563;
         }
         .compatibility-title {
             font-size: 13px;
             font-weight: 600;
             color: #92400e;
+            dark:color: #f59e0b;
             margin-bottom: 4px;
         }
         .compatibility-item {
@@ -154,17 +156,20 @@
             font-size: 11px;
             margin-right: 4px;
             color: #059669;
+            dark:color: #10b981;
         }
         /* 典籍链接样式 */
         .classics-section {
             margin-top: 8px;
             padding-top: 8px;
             border-top: 1px dashed #d1d5db;
+            dark:border-top: 1px dashed #4b5563;
         }
         .classics-title {
             font-size: 13px;
             font-weight: 600;
             color: #7e22ce;
+            dark:color: #a855f7;
             margin-bottom: 6px;
         }
         .classic-btn {
@@ -186,14 +191,6 @@
             font-size: 10px;
             margin-right: 3px;
         }
-        /* 来源标注 */
-        .source-note {
-            font-size: 10px;
-            color: #9ca3af;
-            margin-top: 6px;
-            text-align: right;
-        }
-        /* 暗黑模式适配 */
         @media (prefers-color-scheme: dark) {
             body {
                 background-color: #1f2937;
@@ -236,28 +233,17 @@
             .classics-section {
                 border-top: 1px dashed #4b5563;
             }
-            .compatibility-title {
-                color: #f59e0b;
-            }
-            .classics-title {
-                color: #a855f7;
-            }
-            .source-note {
-                color: #6b7280;
-            }
         }
     </style>
 </head>
 <body class="p-4 max-w-md mx-auto">
-    <!-- 离线提示 -->
     <div id="offline-alert" class="offline-alert">
-        <i class="fa fa-wifi-slash mr-1"></i> 检测到离线状态，模型加载失败
+        <<i class="fa fa-wifi-slash mr-1"></</i> 检测到离线状态，模型加载失败
     </div>
 
-    <!-- 标题区域 -->
     <div class="text-center mb-6">
         <h1 class="text-[clamp(1.5rem,5vw,2rem)] font-bold text-green-700 dark:text-green-400">
-            <i class="fa fa-leaf mr-2"></i>中药识别
+            <<i class="fa fa-leaf mr-2"></</i>中药识别
         </h1>
         <p class="text-gray-500 dark:text-gray-300 text-sm">支持拍照或上传图片识别：枸杞、菊花、人参、甘草、金银花</p>
         <div class="model-progress mx-auto max-w-xs">
@@ -265,42 +251,39 @@
         </div>
     </div>
 
-    <!-- 摄像头/图片容器 -->
     <div class="media-container mb-6 relative">
         <video id="webcam" autoplay muted playsinline style="display: none;"></video>
         <img id="uploaded-image" alt="上传的图片">
         <div id="media-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-white">
-            <i class="fa fa-camera text-5xl mb-3 opacity-70"></i>
+            <<i class="fa fa-camera text-5xl mb-3 opacity-70"></</i>
             <p class="text-sm opacity-70">点击下方按钮选择识别方式</p>
         </div>
         <div id="loading-mask" class="loading-mask hidden">
             <div class="flex flex-col items-center text-white">
-                <i class="fa fa-circle-o-notch loading-spinner text-4xl mb-2"></i>
+                <<i class="fa fa-circle-o-notch loading-spinner text-4xl mb-2"></</i>
                 <p class="text-sm">识别中，请稍候...</p>
             </div>
         </div>
     </div>
 
-    <!-- 功能按钮 -->
     <div class="flex flex-wrap justify-center gap-3 mb-6">
         <button id="start-cam-btn" class="btn mobile-btn bg-blue-500 hover:bg-blue-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700">
-            <i class="fa fa-video-camera mr-2"></i> 相机识别
+            <<i class="fa fa-video-camera mr-2"></</i> 相机识别
         </button>
         <button id="flip-cam-btn" class="btn mobile-btn bg-gray-500 hover:bg-gray-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-gray-700 dark:hover:bg-gray-600">
-            <i class="fa fa-exchange mr-2"></i> 反转镜头
+            <<i class="fa fa-exchange mr-2"></</i> 反转镜头
         </button>
         <!-- 摄像头切换提示 -->
         <div id="cam-tip" class="cam-tip col-span-full">部分手机需授权后才能切换摄像头</div>
         <label for="image-upload" class="btn mobile-btn bg-purple-500 hover:bg-purple-600 text-white px-5 py-3 rounded-full flex items-center shadow-md cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-purple-600 dark:hover:bg-purple-700">
-            <i class="fa fa-upload mr-2"></i> 上传图片
+            <<i class="fa fa-upload mr-2"></</i> 上传图片
         </label>
         <input type="file" id="image-upload" accept="image/*">
         <button id="identify-btn" class="btn mobile-btn bg-green-500 hover:bg-green-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-green-600 dark:hover:bg-green-700">
-            <i class="fa fa-search mr-2"></i> 开始识别
+            <<i class="fa fa-search mr-2"></</i> 开始识别
         </button>
     </div>
 
-    <!-- 识别结果卡片 -->
     <div id="result-card" class="result-card bg-white rounded-xl shadow-md p-5 mb-6 dark:bg-gray-800">
         <h2 class="text-xl font-semibold text-center mb-4 dark:text-white">识别结果</h2>
         <div class="text-center mb-4">
@@ -330,386 +313,720 @@
             </div>
         </div>
         <div id="herb-tips" class="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-600 dark:bg-gray-700 dark:text-gray-200">
-            <p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i> 识别结果后将显示对应药材的简要介绍</p>
+            <p><<i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></</i> 识别结果后将显示对应药材的简要介绍</p>
             <a id="wiki-btn" href="#" class="wiki-btn hidden" target="_blank">
-                <i class="fa fa-external-link mr-1"></i> 查看百度百科
+                <<i class="fa fa-external-link mr-1"></</i> 查看百度百科
             </a>
         </div>
         <button id="reset-btn" class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg btn mobile-btn dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500">
-            <i class="fa fa-refresh mr-1"></i> 重新识别
+            <<i class="fa fa-refresh mr-1"></</i> 重新识别
         </button>
     </div>
 
-    <!-- 状态提示 -->
     <div id="status" class="text-center text-gray-500 dark:text-gray-300 text-sm py-2">
-        <i class="fa fa-circle-o-notch fa-spin mr-1 loading-spinner"></i> 加载模型中...
+        <<i class="fa fa-circle-o-notch fa-spin mr-1 loading-spinner"></</i> 加载模型中...
     </div>
 
     <script>
-        // 药材知识库（含典籍跳转链接）
         const herbKnowledge = {
-            枸杞: {
-                desc: "枸杞：滋补肝肾，益精明目。用于虚劳精亏，腰膝酸痛，眩晕耳鸣，阳痿遗精，内热消渴，血虚萎黄，目昏不明。",
-                compatibility: [
-                    "配菊花：清肝明目，适用于肝肾阴虚之目昏眼花",
-                    "配熟地：滋阴补肾，适用于肾阴不足之腰膝酸软",
-                    "配黄芪：补气养阴，适用于气虚阴亏之乏力口干"
-                ],
-                classics: {
-                    "《本草纲目》": "http://www.dazhongyi.cc/lilunshuji/bencaogangmu/index.html",
-                    "《神农本草经》": "http://www.dazhongyi.cc/lilunshuji/shennongbencaojing/index.html",
-                    "《伤寒杂病论》": "http://www.dazhongyi.cc/lilunshuji/shanghanzabinglun/index.html"
-                },
-                wiki: "https://baike.baidu.com/item/%E6%9E%B8%E6%9D%9E/3367"
-            },
-            菊花: {
-                desc: "菊花：散风清热，平肝明目，清热解毒。用于风热感冒，头痛眩晕，目赤肿痛，眼目昏花，疮痈肿毒。",
-                compatibility: [
-                    "配枸杞：滋补肝肾，清肝明目",
-                    "配桑叶：疏风清热，适用于风热感冒之头痛目赤",
-                    "配决明子：清肝明目，适用于肝火上炎之目赤肿痛"
-                ],
-                classics: {
-                    "《本草纲目》": "http://www.dazhongyi.cc/lilunshuji/bencaogangmu/index.html",
-                    "《神农本草经》": "http://www.dazhongyi.cc/lilunshuji/shennongbencaojing/index.html",
-                    "《千金方》": "http://www.dazhongyi.cc/lilunshuji/qianjinfang/index.html"
-                },
-                wiki: "https://baike.baidu.com/item/%E8%8F%8A%E8%8A%B1/3359"
-            },
-            人参: {
-                desc: "人参：大补元气，复脉固脱，益气摄血。用于体虚欲脱，肢冷脉微，气不摄血，崩漏下血；心力衰竭，心原性休克。",
-                compatibility: [
-                    "配黄芪：补气升阳，适用于气虚乏力",
-                    "配当归：气血双补，适用于气血两虚",
-                    "配麦冬：益气养阴，适用于气阴两虚"
-                ],
-                classics: {
-                    "《本草纲目》": "http://www.dazhongyi.cc/lilunshuji/bencaogangmu/index.html",
-                    "《神农本草经》": "http://www.dazhongyi.cc/lilunshuji/shennongbencaojing/index.html",
-                    "《本草经集注》": "http://www.dazhongyi.cc/lilunshuji/bencaojingjizhu/index.html"
-                },
-                wiki: "https://baike.baidu.com/item/%E4%BA%BA%E5%8F%82/3344"
-            },
-            甘草: {
-                desc: "甘草：补脾益气，清热解毒，祛痰止咳，缓急止痛，调和诸药。用于脾胃虚弱，倦怠乏力，心悸气短，咳嗽痰多。",
-                compatibility: [
-                    "配桂枝：温中益气，适用于脾胃虚寒",
-                    "配桔梗：利咽化痰，适用于咽喉肿痛",
-                    "配白芍：缓急止痛，适用于脘腹挛痛"
-                ],
-                classics: {
-                    "《本草纲目》": "http://www.dazhongyi.cc/lilunshuji/bencaogangmu/index.html",
-                    "《神农本草经》": "http://www.dazhongyi.cc/lilunshuji/shennongbencaojing/index.html",
-                    "《伤寒杂病论》": "http://www.dazhongyi.cc/lilunshuji/shanghanzabinglun/index.html"
-                },
-                wiki: "https://baike.baidu.com/item/%E7%94%98%E8%8D%89/3392"
-            },
-            金银花: {
-                desc: "金银花：清热解毒，疏散风热。用于痈肿疔疮，喉痹，丹毒，热毒血痢，风热感冒，温病发热。",
-                compatibility: [
-                    "配连翘：清热解毒，适用于风热感冒",
-                    "配蒲公英：清热解毒，适用于疮痈肿毒",
-                    "配薄荷：疏散风热，适用于风热感冒之发热咽痛"
-                ],
-                classics: {
-                    "《本草纲目》": "http://www.dazhongyi.cc/lilunshuji/bencaogangmu/index.html",
-                    "《神农本草经》": "http://www.dazhongyi.cc/lilunshuji/shennongbencaojing/index.html",
-                    "《温病条辨》": "http://www.dazhongyi.cc/lilunshuji/wenbingtiaobian/index.html"
-                },
-                wiki: "https://baike.baidu.com/item/%E9%87%91%E9%93%B6%E8%8A%B1/3398"
-            }
+            枸杞: "枸杞：滋补肝肾，益精明目。用于虚劳精亏，腰膝酸痛，眩晕耳鸣，阳痿遗精，内热消渴，血虚萎黄，目昏不明。",
+            菊花: "菊花：散风清热，平肝明目，清热解毒。用于风热感冒，头痛眩晕，目赤肿痛，眼目昏花，疮痈肿毒。",
+            人参: "人参：大补元气，复脉固脱，益气摄血。用于体虚欲脱，肢冷脉微，气不摄血，崩漏下血；心力衰竭，心原性休克。",
+            甘草: "甘草：补脾益气，清热解毒，祛痰止咳，缓急止痛，调和诸药。用于脾胃虚弱，倦怠乏力，心悸气短，咳嗽痰多。",
+            金银花: "金银花：清热解毒，疏散风热。用于痈肿疔疮，喉痹，丹毒，热毒血痢，风热感冒，温病发热。"
         };
 
+        // 新增：药材配伍数据库
+        const herbCompatibility = {
+            枸杞: [
+                {
+                    partners: "枸杞 + 菊花",
+                    effect: "清肝明目、滋补肝肾，适合用眼过度、肝肾阴虚人群，缓解眼睛干涩、视力模糊"
+                },
+                {
+                    partners: "枸杞 + 红枣",
+                    effect: "补气养血、安神养颜，改善气血不足引起的面色萎黄、失眠多梦"
+                },
+                {
+                    partners: "枸杞 + 黄芪",
+                    effect: "益气养阴、扶正固本，增强免疫力，适合体质虚弱、易疲劳人群"
+                }
+            ],
+            菊花: [
+                {
+                    partners: "菊花 + 金银花",
+                    effect: "清热解毒、疏散风热，用于风热感冒、咽喉肿痛、口干舌燥"
+                },
+                {
+                    partners: "菊花 + 决明子",
+                    effect: "清肝明目、润肠通便，改善肝火旺盛引起的目赤肿痛、大便干结"
+                },
+                {
+                    partners: "菊花 + 薄荷",
+                    effect: "疏风散热、清利头目，缓解风热头痛、咽喉肿痛"
+                }
+            ],
+            人参: [
+                {
+                    partners: "人参 + 黄芪",
+                    effect: "大补元气、益气固表，用于气虚乏力、自汗、易感冒等气虚症状"
+                },
+                {
+                    partners: "人参 + 麦冬 + 五味子",
+                    effect: "益气养阴、生津止汗，适合气阴两虚引起的心悸、口干、盗汗"
+                },
+                {
+                    partners: "人参 + 白术 + 茯苓",
+                    effect: "益气健脾、渗湿止泻，改善脾胃虚弱引起的食欲不振、消化不良"
+                }
+            ],
+            甘草: [
+                {
+                    partners: "甘草 + 桔梗",
+                    effect: "宣肺利咽、祛痰止咳，用于咳嗽痰多、咽喉肿痛"
+                },
+                {
+                    partners: "甘草 + 白芍",
+                    effect: "缓急止痛，缓解腹部、四肢拘挛疼痛"
+                },
+                {
+                    partners: "甘草 + 金银花 + 连翘",
+                    effect: "清热解毒、消肿散结，用于疮疡肿毒、风热感冒"
+                }
+            ],
+            金银花: [
+                {
+                    partners: "金银花 + 连翘",
+                    effect: "清热解毒、疏散风热，增强清热效果，用于风热感冒、温病初起"
+                },
+                {
+                    partners: "金银花 + 蒲公英",
+                    effect: "清热解毒、消肿散结，用于疮痈肿毒、乳腺炎、咽喉肿痛"
+                },
+                {
+                    partners: "金银花 + 麦冬",
+                    effect: "清热养阴，用于热病后期余热未清、口干咽燥"
+                }
+            ]
+        };
+
+        // 新增：中药典籍数据库（跳转至大众中医网对应位置）
+        const herbClassics = {
+            枸杞: [
+                {
+                    name: "《本草纲目》",
+                    desc: "枸杞篇",
+                    url: "http://www.dazhongyi.cc/lilunshuji/bencaogangmu/index.html"
+                },
+                {
+                    name: "《伤寒杂病论》",
+                    desc: "枸杞应用",
+                    url: "http://www.dazhongyi.cc/lilunshuji/shanghanzabinglun/index.html"
+                },
+                {
+                    name: "《神农本草经》",
+                    desc: "上品枸杞",
+                    url: "http://www.dazhongyi.cc/lilunshuji/shennongbencaojing/index.html"
+                },
+                {
+                    name: "《千金方》",
+                    desc: "枸杞养生方",
+                    url: "http://www.dazhongyi.cc/lilunshuji/qianjinfang/index.html"
+                },
+                {
+                    name: "《黄帝内经》",
+                    desc: "枸杞养肝理论",
+                    url: "http://www.dazhongyi.cc/lilunshuji/huangdineijing/index.html"
+                },
+                {
+                    name: "《滇南本草》",
+                    desc: "滇枸杞记载",
+                    url: "http://www.dazhongyi.cc/lilunshuji/diannanbencao/index.html"
+                }
+            ],
+            菊花: [
+                {
+                    name: "《本草纲目》",
+                    desc: "菊花篇",
+                    url: "http://www.dazhongyi.cc/lilunshuji/bencaogangmu/index.html"
+                },
+                {
+                    name: "《伤寒杂病论》",
+                    desc: "菊花清热方",
+                    url: "http://www.dazhongyi.cc/lilunshuji/shanghanzabinglun/index.html"
+                },
+                {
+                    name: "《神农本草经》",
+                    desc: "菊花上品记载",
+                    url: "http://www.dazhongyi.cc/lilunshuji/shennongbencaojing/index.html"
+                },
+                {
+                    name: "《温病条辨》",
+                    desc: "菊花清瘟方",
+                    url: "http://www.dazhongyi.cc/lilunshuji/wenbingtiaobian/index.html"
+                },
+                {
+                    name: "《备急千金要方》",
+                    desc: "菊花明目方",
+                    url: "http://www.dazhongyi.cc/lilunshuji/beijiqianjinyaofang/index.html"
+                },
+                {
+                    name: "《本草经集注》",
+                    desc: "菊花配伍记载",
+                    url: "http://www.dazhongyi.cc/lilunshuji/bencaojingjizhu/index.html"
+                }
+            ],
+            人参: [
+                {
+                    name: "《本草纲目》",
+                    desc: "人参篇",
+                    url: "http://www.dazhongyi.cc/lilunshuji/bencaogangmu/index.html"
+                },
+                {
+                    name: "《伤寒杂病论》",
+                    desc: "人参救逆方",
+                    url: "http://www.dazhongyi.cc/lilunshuji/shanghanzabinglun/index.html"
+                },
+                {
+                    name: "《神农本草经》",
+                    desc: "人参上品记载",
+                    url: "http://www.dazhongyi.cc/lilunshuji/shennongbencaojing/index.html"
+                },
+                {
+                    name: "《景岳全书》",
+                    desc: "人参温补方",
+                    url: "http://www.dazhongyi.cc/lilunshuji/jingyuequanshu/index.html"
+                },
+                {
+                    name: "《汤液本草》",
+                    desc: "人参汤方",
+                    url: "http://www.dazhongyi.cc/lilunshuji/tangyebencao/index.html"
+                },
+                {
+                    name: "《药性论》",
+                    desc: "人参药性记载",
+                    url: "http://www.dazhongyi.cc/lilunshuji/yaoxinglun/index.html"
+                }
+            ],
+            甘草: [
+                {
+                    name: "《本草纲目》",
+                    desc: "甘草篇",
+                    url: "http://www.dazhongyi.cc/lilunshuji/bencaogangmu/index.html"
+                },
+                {
+                    name: "《伤寒杂病论》",
+                    desc: "甘草调和方",
+                    url: "http://www.dazhongyi.cc/lilunshuji/shanghanzabinglun/index.html"
+                },
+                {
+                    name: "《神农本草经》",
+                    desc: "甘草上品记载",
+                    url: "http://www.dazhongyi.cc/lilunshuji/shennongbencaojing/index.html"
+                },
+                {
+                    name: "《金匮要略》",
+                    desc: "甘草止痛方",
+                    url: "http://www.dazhongyi.cc/lilunshuji/jinkuiyaolue/index.html"
+                },
+                {
+                    name: "《本草正义》",
+                    desc: "甘草药性解析",
+                    url: "http://www.dazhongyi.cc/lilunshuji/bencaozhengyi/index.html"
+                },
+                {
+                    name: "《名医别录》",
+                    desc: "甘草配伍记载",
+                    url: "http://www.dazhongyi.cc/lilunshuji/mingyibielu/index.html"
+                }
+            ],
+            金银花: [
+                {
+                    name: "《本草纲目》",
+                    desc: "金银花篇",
+                    url: "http://www.dazhongyi.cc/lilunshuji/bencaogangmu/index.html"
+                },
+                {
+                    name: "《伤寒杂病论》",
+                    desc: "金银花清热方",
+                    url: "http://www.dazhongyi.cc/lilunshuji/shanghanzabinglun/index.html"
+                },
+                {
+                    name: "《神农本草经》",
+                    desc: "金银花记载",
+                    url: "http://www.dazhongyi.cc/lilunshuji/shennongbencaojing/index.html"
+                },
+                {
+                    name: "《温病条辨》",
+                    desc: "金银花清瘟方",
+                    url: "http://www.dazhongyi.cc/lilunshuji/wenbingtiaobian/index.html"
+                },
+                {
+                    name: "《本草拾遗》",
+                    desc: "金银花拾遗",
+                    url: "http://www.dazhongyi.cc/lilunshuji/bencaoshiyi/index.html"
+                },
+                {
+                    name: "《本草汇言》",
+                    desc: "金银花药性解析",
+                    url: "http://www.dazhongyi.cc/lilunshuji/bencaohuiyan/index.html"
+                }
+            ]
+        };
+
+        // 新增：生成典籍链接HTML
+        function generateClassicsHtml(herbName) {
+            const classics = herbClassics[herbName];
+            if (!classics || classics.length === 0) {
+                return '';
+            }
+            
+            let html = `
+                <div class="classics-section">
+                    <div class="classics-title"><<i class="fa fa-book"></</i> 经典典籍记载（大众中医网）</div>
+            `;
+            
+            classics.forEach(item => {
+                html += `
+                    <a href="${item.url}" class="classic-btn" target="_blank">
+                        <<i class="fa fa-bookmark"></</i>${item.name}(${item.desc})
+                    </a>
+                `;
+            });
+            
+            html += `</div>`;
+            return html;
+        }
+
+        class HerbModelHandler {
+            constructor(modelUrl = 'model/model.json', classNames = ['枸杞', '菊花', '人参', '甘草', '金银花']) {
+                this.modelUrl = modelUrl;
+                this.classNames = classNames;
+                this.model = null;
+                this.isLoaded = false;
+            }
+
+            async loadModel(onProgress) {
+                try {
+                    if (this.isLoaded) return true;
+                    tf.ENV.set('WEBGL_PACK_DEPTHWISECONV', false);
+                    tf.ENV.set('WEBGL_FORCE_F16_TEXTURES', true);
+                    
+                    const model = await tf.loadLayersModel(this.modelUrl, {
+                        onProgress: (progress) => {
+                            onProgress && onProgress(Math.floor(progress * 100));
+                        }
+                    });
+                    
+                    this.model = model;
+                    this.isLoaded = true;
+                    console.log('模型加载成功');
+                    return true;
+                } catch (error) {
+                    console.error('模型加载失败：', error);
+                    this.isLoaded = false;
+                    return false;
+                }
+            }
+
+            preprocessImage(imgTensor) {
+                return tf.tidy(() => {
+                    const rgbTensor = imgTensor.shape[2] === 4 
+                        ? imgTensor.slice([0, 0, 0], [-1, -1, 3]) 
+                        : imgTensor;
+                    return rgbTensor.resizeBilinear([224, 224])
+                        .toFloat()
+                        .div(255.0)
+                        .expandDims(0);
+                });
+            }
+
+            async predict(imgTensor) {
+                if (!this.isLoaded || !this.model) {
+                    console.error('模型未加载');
+                    return null;
+                }
+
+                try {
+                    const processedImg = this.preprocessImage(imgTensor);
+                    const predictions = await this.model.predict(processedImg).data();
+                    const scores = Array.from(predictions);
+
+                    const total = scores.reduce((a, b) => a + b, 0);
+                    const normalizedScores = scores.map(s => total === 0 ? 0 : s / total);
+
+                    const maxScore = Math.max(...normalizedScores);
+                    const predictedIndex = normalizedScores.indexOf(maxScore);
+                    
+                    const result = {
+                        predictedClass: this.classNames[predictedIndex],
+                        confidence: (maxScore * 100).toFixed(1),
+                        probabilities: {
+                            枸杞: (normalizedScores[0] * 100).toFixed(1),
+                            菊花: (normalizedScores[1] * 100).toFixed(1),
+                            人参: (normalizedScores[2] * 100).toFixed(1),
+                            甘草: (normalizedScores[3] * 100).toFixed(1),
+                            金银花: (normalizedScores[4] * 100).toFixed(1)
+                        }
+                    };
+
+                    tf.dispose([imgTensor, processedImg]);
+                    return result;
+                } catch (error) {
+                    console.error('推理失败：', error);
+                    return null;
+                }
+            }
+        }
+
+        // 新增：生成配伍HTML
+        function generateCompatibilityHtml(herbName) {
+            const compatibility = herbCompatibility[herbName];
+            if (!compatibility || compatibility.length === 0) {
+                return '';
+            }
+            
+            let html = `
+                <div class="compatibility-section">
+                    <div class="compatibility-title"><<i class="fa fa-users"></</i> 常见搭配及功效</div>
+            `;
+            
+            compatibility.forEach(item => {
+                html += `
+                    <div class="compatibility-item">
+                        <<i class="fa fa-leaf"></</i><strong>${item.partners}：</strong>${item.effect}
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            return html;
+        }
+
+        // 全局变量
+        const modelHandler = new HerbModelHandler();
+        let webcam = null;
+        let currentMode = null;
+        let currentCameraFacing = 'environment';
+        let mediaStream = null; // 保存媒体流引用
+
         // DOM元素
-        const webcam = document.getElementById('webcam');
-        const uploadedImage = document.getElementById('uploaded-image');
-        const mediaPlaceholder = document.getElementById('media-placeholder');
         const startCamBtn = document.getElementById('start-cam-btn');
         const flipCamBtn = document.getElementById('flip-cam-btn');
+        const camTip = document.getElementById('cam-tip');
         const imageUpload = document.getElementById('image-upload');
         const identifyBtn = document.getElementById('identify-btn');
         const resetBtn = document.getElementById('reset-btn');
-        const loadingMask = document.getElementById('loading-mask');
+        const webcamElement = document.getElementById('webcam');
+        const uploadedImage = document.getElementById('uploaded-image');
+        const mediaPlaceholder = document.getElementById('media-placeholder');
         const resultCard = document.getElementById('result-card');
-        const prediction = document.getElementById('prediction');
-        const confidence = document.getElementById('confidence');
-        const herbTips = document.getElementById('herb-tips');
-        const wikiBtn = document.getElementById('wiki-btn');
-        const statusText = document.getElementById('status');
+        const predictionElement = document.getElementById('prediction');
+        const confidenceElement = document.getElementById('confidence');
+        const statusElement = document.getElementById('status');
+        const loadingMask = document.getElementById('loading-mask');
         const progressBar = document.getElementById('progress-bar');
         const offlineAlert = document.getElementById('offline-alert');
-        const camTip = document.getElementById('cam-tip');
-        
-        // 概率项元素
-        const wolfberryEl = document.getElementById('wolfberry');
-        const chrysanthemumEl = document.getElementById('chrysanthemum');
-        const ginsengEl = document.getElementById('ginseng');
-        const liquoriceEl = document.getElementById('liquorice');
-        const honeysuckleEl = document.getElementById('honeysuckle');
-        const probItems = document.querySelectorAll('.prob-item');
+        const herbTips = document.getElementById('herb-tips');
+        const wikiBtn = document.getElementById('wiki-btn');
 
-        // 全局变量
-        let model;
-        let stream;
-        let currentCam = 'user'; // user: 前置, environment: 后置
-        let isModelLoaded = false;
+        const probElements = {
+            枸杞: document.getElementById('wolfberry'),
+            菊花: document.getElementById('chrysanthemum'),
+            人参: document.getElementById('ginseng'),
+            甘草: document.getElementById('liquorice'),
+            金银花: document.getElementById('honeysuckle')
+        };
 
-        // 检查离线状态
-        if (!navigator.onLine) {
+        // 检测网络状态
+        window.addEventListener('online', () => {
+            offlineAlert.style.display = 'none';
+        });
+        window.addEventListener('offline', () => {
             offlineAlert.style.display = 'block';
+            statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><<i class="fa fa-exclamation-circle mr-1"></</i>网络已断开</span>`;
+        });
+
+        // ========== 修复核心：兼容多设备的摄像头切换函数 ==========
+        async function getCameraConstraints(facingMode) {
+            // 方案1：标准facingMode（大部分安卓手机）
+            const constraints1 = {
+                video: {
+                    facingMode: facingMode,
+                    width: { ideal: 320, max: 480 },
+                    height: { ideal: 480, max: 640 },
+                    frameRate: { ideal: 15, max: 30 } // 降低帧率提升兼容性
+                }
+            };
+
+            // 方案2：旧版语法（兼容iOS/Safari）
+            const constraints2 = {
+                video: {
+                    facingMode: { exact: facingMode },
+                    width: { ideal: 320 },
+                    height: { ideal: 480 }
+                }
+            };
+
+            // 方案3：不指定facingMode（降级方案）
+            const constraints3 = {
+                video: {
+                    width: { ideal: 320 },
+                    height: { ideal: 480 }
+                }
+            };
+
+            return [constraints1, constraints2, constraints3];
         }
 
-        // 加载TFJS模型
-        async function loadModel() {
-            try {
-                // 模拟进度条
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += Math.random() * 20;
-                    if (progress > 100) progress = 100;
-                    progressBar.style.width = `${progress}%`;
-                    if (progress === 100) clearInterval(progressInterval);
-                }, 200);
+        async function initCamera(facingMode) {
+            // 显示切换提示
+            camTip.style.display = 'block';
+            setTimeout(() => camTip.style.display = 'none', 3000);
 
-                // 这里替换为实际模型加载逻辑（示例用随机模拟）
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                // 标记模型加载完成
-                isModelLoaded = true;
-                progressBar.style.width = '100%';
-                statusText.innerHTML = '<i class="fa fa-check text-green-500 mr-1"></i> 模型加载完成';
-                
-                // 启用按钮
-                startCamBtn.disabled = false;
-                imageUpload.disabled = false;
-                flipCamBtn.disabled = false;
-                
-            } catch (error) {
-                console.error('模型加载失败:', error);
-                statusText.innerHTML = '<i class="fa fa-exclamation-triangle text-red-500 mr-1"></i> 模型加载失败';
-                offlineAlert.style.display = 'block';
-            }
-        }
-
-        // 启动摄像头
-        async function startCamera() {
             try {
+                statusElement.textContent = `正在打开${facingMode === 'environment' ? '后置' : '前置'}摄像头...`;
+                
                 // 停止现有流
-                if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                    mediaStream = null;
                 }
 
-                // 摄像头约束
-                const constraints = {
-                    video: {
-                        facingMode: currentCam,
-                        width: { ideal: 400 },
-                        height: { ideal: 500 }
+                // 获取多套约束方案
+                const constraintsList = await getCameraConstraints(facingMode);
+                let stream = null;
+
+                // 依次尝试不同的约束方案
+                for (let i = 0; i < constraintsList.length; i++) {
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia(constraintsList[i]);
+                        break; // 成功则退出循环
+                    } catch (e) {
+                        console.log(`方案${i+1}失败：`, e.message);
+                        if (i === constraintsList.length - 1) throw e; // 所有方案都失败
                     }
-                };
+                }
 
-                // 获取摄像头流
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
-                webcam.srcObject = stream;
-                webcam.style.display = 'block';
-                uploadedImage.style.display = 'none';
-                mediaPlaceholder.style.display = 'none';
+                // 保存媒体流引用
+                mediaStream = stream;
+                webcamElement.srcObject = stream;
                 
-                // 显示摄像头切换提示
-                camTip.style.display = 'block';
-                
-                // 启用识别按钮
-                identifyBtn.disabled = !isModelLoaded;
+                // 等待视频加载
+                await new Promise((resolve) => {
+                    webcamElement.onloadedmetadata = resolve;
+                });
 
+                // 初始化tfjs webcam
+                webcam = await tf.data.webcam(webcamElement);
+                
+                currentCameraFacing = facingMode;
+                flipCamBtn.disabled = false;
+                identifyBtn.disabled = false;
+                
+                // 检测实际摄像头方向（兼容识别）
+                const track = stream.getVideoTracks()[0];
+                const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+                if (capabilities.facingMode) {
+                    currentCameraFacing = track.getSettings().facingMode || facingMode;
+                }
+
+                statusElement.textContent = `已打开${currentCameraFacing === 'environment' ? '后置' : '前置'}摄像头，请对准药材`;
             } catch (error) {
-                console.error('摄像头启动失败:', error);
-                statusText.innerHTML = '<i class="fa fa-exclamation-triangle text-red-500 mr-1"></i> 摄像头访问失败，请授权';
-                camTip.style.display = 'block';
-                camTip.textContent = '请在浏览器设置中允许摄像头权限';
+                console.error('相机初始化失败：', error);
+                
+                // 更友好的错误提示
+                if (error.message.includes('permission')) {
+                    statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><<i class="fa fa-exclamation-circle mr-1"></</i>请在手机设置中允许摄像头权限</span>`;
+                } else if (error.message.includes('not found') || error.message.includes('device')) {
+                    statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><<i class="fa fa-exclamation-circle mr-1"></</i>未检测到${facingMode === 'environment' ? '后置' : '前置'}摄像头</span>`;
+                } else {
+                    statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><<i class="fa fa-exclamation-circle mr-1"></</i>相机打开失败：${error.message}</span>`;
+                }
+                
+                flipCamBtn.disabled = true;
+                identifyBtn.disabled = true;
             }
         }
 
-        // 切换摄像头
-        async function flipCamera() {
-            currentCam = currentCam === 'user' ? 'environment' : 'user';
-            await startCamera();
-            camTip.textContent = `当前使用${currentCam === 'user' ? '前置' : '后置'}摄像头`;
-        }
+        // 页面加载
+        window.onload = async () => {
+            if (!navigator.onLine) {
+                offlineAlert.style.display = 'block';
+            }
 
-        // 处理图片上传
-        function handleImageUpload(e) {
+            const loadSuccess = await modelHandler.loadModel((progress) => {
+                progressBar.style.width = `${progress}%`;
+                statusElement.textContent = `加载模型中... ${progress}%`;
+            });
+            
+            progressBar.style.width = '100%';
+            if (loadSuccess) {
+                statusElement.textContent = '模型加载完成，请选择识别方式';
+                startCamBtn.disabled = false;
+                imageUpload.disabled = false;
+            } else {
+                statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><<i class="fa fa-exclamation-circle mr-1"></</i>模型加载失败：请检查model文件夹或网络</span>`;
+            }
+            flipCamBtn.disabled = true;
+        };
+
+        // 相机识别
+        startCamBtn.addEventListener('click', async () => {
+            currentMode = 'camera';
+            uploadedImage.style.display = 'none';
+            mediaPlaceholder.classList.add('hidden');
+            webcamElement.style.display = 'block';
+            await initCamera('environment');
+        });
+
+        // 修复反转镜头功能
+        flipCamBtn.addEventListener('click', async () => {
+            // 禁用按钮防止重复点击
+            flipCamBtn.disabled = true;
+            
+            const newFacingMode = currentCameraFacing === 'environment' ? 'user' : 'environment';
+            await initCamera(newFacingMode);
+        });
+
+        // 上传图片
+        imageUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
+            const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><<i class="fa fa-exclamation-circle mr-1"></</i>请上传JPG/PNG格式图片</span>`;
+                return;
+            }
+            
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><<i class="fa fa-exclamation-circle mr-1"></</i>图片大小不超过5MB</span>`;
+                return;
+            }
+
+            currentMode = 'upload';
+            webcamElement.style.display = 'none';
+            mediaPlaceholder.classList.add('hidden');
+            uploadedImage.style.display = 'block';
+
             const reader = new FileReader();
-            reader.onload = function(event) {
+            reader.onload = (event) => {
                 uploadedImage.src = event.target.result;
-                uploadedImage.style.display = 'block';
-                webcam.style.display = 'none';
-                mediaPlaceholder.style.display = 'none';
-                
-                // 停止摄像头
-                if (stream) {
-                    stream.getTracks().forEach(track => track.stop());
-                    stream = null;
-                }
-                
-                // 启用识别按钮
-                identifyBtn.disabled = !isModelLoaded;
-                camTip.style.display = 'none';
+                uploadedImage.onload = () => {
+                    identifyBtn.disabled = false;
+                    statusElement.textContent = '图片已上传，点击开始识别';
+                };
             };
             reader.readAsDataURL(file);
-        }
+        });
 
-        // 模拟识别逻辑
-        async function identifyHerb() {
-            if (!isModelLoaded) return;
+        // 开始识别
+        identifyBtn.addEventListener('click', async () => {
+            if (!modelHandler.isLoaded) return;
 
-            // 显示加载遮罩
-            loadingMask.style.display = 'flex';
+            loadingMask.classList.remove('hidden');
+            statusElement.textContent = '识别中...';
             identifyBtn.disabled = true;
 
             try {
-                // 模拟识别延迟
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                let imgTensor;
 
-                // 生成随机概率
-                const probabilities = {
-                    枸杞: Math.random() * 100,
-                    菊花: Math.random() * 100,
-                    人参: Math.random() * 100,
-                    甘草: Math.random() * 100,
-                    金银花: Math.random() * 100
-                };
-
-                // 找出最大值
-                let maxProb = 0;
-                let maxHerb = '';
-                for (const [herb, prob] of Object.entries(probabilities)) {
-                    if (prob > maxProb) {
-                        maxProb = prob;
-                        maxHerb = herb;
-                    }
+                if (currentMode === 'camera' && webcam) {
+                    const img = await webcam.capture();
+                    imgTensor = img;
+                } else if (currentMode === 'upload' && uploadedImage.src) {
+                    imgTensor = tf.browser.fromPixels(uploadedImage);
+                } else {
+                    throw new Error('未获取到图像，请重试');
                 }
 
-                // 更新概率显示
-                wolfberryEl.textContent = `${probabilities.枸杞.toFixed(1)}%`;
-                chrysanthemumEl.textContent = `${probabilities.菊花.toFixed(1)}%`;
-                ginsengEl.textContent = `${probabilities.人参.toFixed(1)}%`;
-                liquoriceEl.textContent = `${probabilities.甘草.toFixed(1)}%`;
-                honeysuckleEl.textContent = `${probabilities.金银花.toFixed(1)}%`;
+                const result = await modelHandler.predict(imgTensor);
 
-                // 高亮最大概率项
-                probItems.forEach(item => {
-                    item.classList.remove('highlight');
-                    if (item.dataset.herb === maxHerb) {
-                        item.classList.add('highlight');
-                    }
-                });
-
-                // 更新结果
-                prediction.textContent = maxHerb;
-                confidence.textContent = `可信度：${maxProb.toFixed(1)}%`;
-
-                // 更新药材提示
-                const herbData = herbKnowledge[maxHerb];
-                herbTips.innerHTML = `
-                    <p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i> ${herbData.desc}</p>
+                if (result) {
+                    predictionElement.textContent = result.predictedClass;
+                    confidenceElement.textContent = `可信度：${result.confidence}%`;
                     
-                    <!-- 配伍信息 -->
-                    <div class="compatibility-section">
-                        <div class="compatibility-title">✨ 经典配伍</div>
-                        ${herbData.compatibility.map(item => `
-                            <div class="compatibility-item"><i class="fa fa-leaf"></i>${item}</div>
-                        `).join('')}
-                    </div>
-                    
-                    <!-- 典籍链接 -->
-                    <div class="classics-section">
-                        <div class="classics-title">📚 典籍记载</div>
-                        ${Object.entries(herbData.classics).map(([name, url]) => `
-                            <a href="${url}" class="classic-btn" target="_blank"><i class="fa fa-book"></i>${name}</a>
-                        `).join('')}
-                        <div class="source-note">数据来源：大众中医网</div>
-                    </div>
-                    
-                    <a id="wiki-btn" href="${herbData.wiki}" class="wiki-btn" target="_blank">
-                        <i class="fa fa-external-link mr-1"></i> 查看百度百科
-                    </a>
-                `;
+                    Object.keys(probElements).forEach(herb => {
+                        probElements[herb].textContent = `${result.probabilities[herb]}%`;
+                    });
 
-                // 显示结果卡片
-                resultCard.classList.add('show');
+                    document.querySelectorAll('.prob-item').forEach(item => {
+                        item.classList.remove('highlight');
+                        if (item.dataset.herb === result.predictedClass) {
+                            item.classList.add('highlight');
+                        }
+                    });
 
+                    // 修改：添加配伍信息和典籍链接
+                    const compatibilityHtml = generateCompatibilityHtml(result.predictedClass);
+                    const classicsHtml = generateClassicsHtml(result.predictedClass);
+                    herbTips.innerHTML = `
+                        <p><<i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></</i>${herbKnowledge[result.predictedClass]}</p>
+                        ${compatibilityHtml}
+                        ${classicsHtml}
+                    `;
+                    
+                    const wikiUrl = `https://baike.baidu.com/item/${encodeURIComponent(result.predictedClass)}`;
+                    wikiBtn.href = wikiUrl;
+                    wikiBtn.classList.remove('hidden');
+                    herbTips.appendChild(wikiBtn);
+
+                    resultCard.classList.add('show');
+                    statusElement.textContent = '识别完成';
+                } else {
+                    throw new Error('无法获取识别结果');
+                }
             } catch (error) {
-                console.error('识别失败:', error);
-                statusText.innerHTML = '<i class="fa fa-exclamation-triangle text-red-500 mr-1"></i> 识别失败，请重试';
-            } finally {
-                // 隐藏加载遮罩
-                loadingMask.style.display = 'none';
+                statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><<i class="fa fa-exclamation-circle mr-1"></</i>识别失败：${error.message}</span>`;
                 identifyBtn.disabled = false;
+            } finally {
+                loadingMask.classList.add('hidden');
             }
-        }
+        });
 
-        // 重置功能
-        function resetAll() {
-            // 重置结果
-            prediction.textContent = '--';
-            confidence.textContent = '可信度：--%';
-            wolfberryEl.textContent = '--%';
-            chrysanthemumEl.textContent = '--%';
-            ginsengEl.textContent = '--%';
-            liquoriceEl.textContent = '--%';
-            honeysuckleEl.textContent = '--%';
-            
-            // 重置提示
-            herbTips.innerHTML = `
-                <p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i> 识别结果后将显示对应药材的简要介绍</p>
-                <a id="wiki-btn" href="#" class="wiki-btn hidden" target="_blank">
-                    <i class="fa fa-external-link mr-1"></i> 查看百度百科
-                </a>
-            `;
-            
-            // 重置高亮
-            probItems.forEach(item => item.classList.remove('highlight'));
-            
-            // 隐藏结果卡片
+        // 重新识别
+        resetBtn.addEventListener('click', () => {
             resultCard.classList.remove('show');
-            
-            // 重置媒体区域
-            webcam.style.display = 'none';
+            webcamElement.style.display = 'none';
             uploadedImage.style.display = 'none';
-            mediaPlaceholder.style.display = 'flex';
+            mediaPlaceholder.classList.remove('hidden');
             
             // 停止摄像头
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+                webcam = null;
             }
             
-            // 重置摄像头提示
-            camTip.style.display = 'none';
-            camTip.textContent = '部分手机需授权后才能切换摄像头';
+            Object.values(probElements).forEach(el => el.textContent = '--%');
+            document.querySelectorAll('.prob-item').forEach(item => item.classList.remove('highlight'));
             
-            // 禁用识别按钮
+            herbTips.innerHTML = `<p><<i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></</i> 识别结果后将显示对应药材的简要介绍</p>`;
+            wikiBtn.classList.add('hidden');
+            
+            imageUpload.value = '';
+            currentMode = null;
+            flipCamBtn.disabled = true;
             identifyBtn.disabled = true;
-        }
+            statusElement.textContent = '请选择识别方式（相机/上传图片）';
+        });
 
-        // 事件监听
-        startCamBtn.addEventListener('click', startCamera);
-        flipCamBtn.addEventListener('click', flipCamera);
-        imageUpload.addEventListener('change', handleImageUpload);
-        identifyBtn.addEventListener('click', identifyHerb);
-        resetBtn.addEventListener('click', resetAll);
-
-        // 页面加载时加载模型
-        window.addEventListener('load', loadModel);
-
-        // 清理资源
-        window.addEventListener('beforeunload', () => {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
+        // 移动端返回键
+        document.addEventListener('backbutton', () => {
+            if (resultCard.classList.contains('show')) {
+                resetBtn.click();
             }
+        });
+
+        // 释放资源
+        window.addEventListener('beforeunload', () => {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+            }
+            tf.disposeVariables();
+            tf.memory().unreliableCheck(true);
         });
     </script>
 </body>
