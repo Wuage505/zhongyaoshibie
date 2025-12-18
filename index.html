@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
-    <title>中药识别 - 五味药材</title>
+    <title>中药识别 - 智能百科检索</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/dist/tf.min.js"></script>
@@ -142,14 +142,32 @@
                 background-color: #5865f2;
                 color: #fff;
             }
-            .search-container input {
+            .search-container {
                 background-color: #374151;
-                color: #fff;
-                border-color: #4b5563;
             }
-            .search-container button {
-                background-color: #5865f2;
+            .search-container input {
+                background-color: #4b5563;
                 color: #fff;
+                border-color: #5865f2;
+            }
+            .search-result-item {
+                background-color: #4b5563;
+                border-color: #6b7280;
+            }
+            .search-result-item:hover {
+                background-color: #5865f2;
+            }
+            .search-tips {
+                color: #d1d5db;
+            }
+            .no-result, .search-loading {
+                color: #d1d5db;
+            }
+            .result-title {
+                color: #93c5fd;
+            }
+            .result-desc {
+                color: #e5e7eb;
             }
         }
         /* 百科按钮样式 */
@@ -167,45 +185,99 @@
         .wiki-btn:hover {
             background-color: #2563eb;
         }
-        /* 搜索引擎样式 */
+        /* 升级后的搜索引擎样式 */
         .search-container {
             margin-top: 20px;
-            padding: 16px;
+            padding: 20px;
             background-color: white;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            dark:bg-gray-800;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
         }
         .search-container h3 {
             font-size: 18px;
             font-weight: 600;
             color: #166534;
-            dark:text-green-400;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             text-align: center;
         }
         .search-input-group {
             display: flex;
             gap: 8px;
+            margin-bottom: 12px;
         }
         .search-input-group input {
             flex: 1;
-            padding: 12px 16px;
+            padding: 14px 16px;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             font-size: 16px;
-            dark:bg-gray-700;
-            dark:border-gray-600;
-            dark:color-white;
+            outline: none;
+        }
+        .search-input-group input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
         }
         .search-input-group button {
-            padding: 0 16px;
+            padding: 0 20px;
             background-color: #16a34a;
             color: white;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            dark:bg-green-600;
+            font-size: 16px;
+        }
+        /* 搜索提示 */
+        .search-tips {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 16px;
+            padding-left: 4px;
+        }
+        /* 搜索结果样式 */
+        .search-results {
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+        .search-result-item {
+            padding: 12px 16px;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            transition: background-color 0.2s;
+        }
+        .search-result-item:last-child {
+            margin-bottom: 0;
+        }
+        .search-result-item:hover {
+            background-color: #eff6ff;
+        }
+        .result-title {
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 4px;
+            font-size: 16px;
+        }
+        .result-desc {
+            font-size: 14px;
+            color: #4b5563;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+        /* 无结果提示 */
+        .no-result {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        /* 搜索加载状态 */
+        .search-loading {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
         }
     </style>
 </head>
@@ -251,7 +323,7 @@
         <button id="start-cam-btn" class="btn mobile-btn bg-blue-500 hover:bg-blue-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700">
             <i class="fa fa-video-camera mr-2"></i> 相机识别
         </button>
-        <!-- 新增反转镜头按钮 -->
+        <!-- 反转镜头按钮 -->
         <button id="flip-cam-btn" class="btn mobile-btn bg-gray-500 hover:bg-gray-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-gray-700 dark:hover:bg-gray-600">
             <i class="fa fa-exchange mr-2"></i> 反转镜头
         </button>
@@ -294,7 +366,7 @@
                 <p id="honeysuckle" class="font-bold text-green-500 dark:text-green-400">--%</p>
             </div>
         </div>
-        <!-- 药材小知识（新增百科按钮） -->
+        <!-- 药材小知识（百科按钮） -->
         <div id="herb-tips" class="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-600 dark:bg-gray-700 dark:text-gray-200">
             <p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i> 识别结果后将显示对应药材的简要介绍</p>
             <a id="wiki-btn" href="#" class="wiki-btn hidden" target="_blank">
@@ -312,28 +384,91 @@
         <i class="fa fa-circle-o-notch fa-spin mr-1 loading-spinner"></i> 加载模型中...
     </div>
 
-    <!-- 新增中药搜索引擎 -->
+    <!-- 升级后的智能中药搜索引擎 -->
     <div class="search-container">
-        <h3><i class="fa fa-search mr-2"></i>中药百科搜索</h3>
+        <h3><i class="fa fa-search mr-2"></i>智能中药百科检索</h3>
         <div class="search-input-group">
-            <input type="text" id="herb-search-input" placeholder="输入中药名称（如：黄芪、当归）" autocomplete="off">
+            <input type="text" id="herb-search-input" placeholder="输入中药名称或药效（如：清热解毒、补肾、黄芪）" autocomplete="off">
             <button id="herb-search-btn" class="btn mobile-btn">
-                <i class="fa fa-search"></i>
+                <i class="fa fa-search"></i> 搜索
             </button>
         </div>
+        <p class="search-tips">支持按名称搜索（如：当归）或按药效搜索（如：补血、止咳化痰）</p>
+        <div id="search-results" class="search-results"></div>
     </div>
 
     <script>
-        // 药材知识库
-        const herbKnowledge = {
-            枸杞: "枸杞：滋补肝肾，益精明目。用于虚劳精亏，腰膝酸痛，眩晕耳鸣，阳痿遗精，内热消渴，血虚萎黄，目昏不明。",
-            菊花: "菊花：散风清热，平肝明目，清热解毒。用于风热感冒，头痛眩晕，目赤肿痛，眼目昏花，疮痈肿毒。",
-            人参: "人参：大补元气，复脉固脱，益气摄血。用于体虚欲脱，肢冷脉微，气不摄血，崩漏下血；心力衰竭，心原性休克。",
-            甘草: "甘草：补脾益气，清热解毒，祛痰止咳，缓急止痛，调和诸药。用于脾胃虚弱，倦怠乏力，心悸气短，咳嗽痰多。",
-            金银花: "金银花：清热解毒，疏散风热。用于痈肿疔疮，喉痹，丹毒，热毒血痢，风热感冒，温病发热。"
-        };
+        // 扩展中药知识库（包含名称、别名、药效、简介）
+        const herbDatabase = [
+            {
+                name: "枸杞",
+                alias: ["枸杞子", "杞子", "红枸杞"],
+                efficacy: ["滋补肝肾", "益精明目", "虚劳精亏", "腰膝酸痛", "眩晕耳鸣", "内热消渴", "目昏不明"],
+                desc: "枸杞：滋补肝肾，益精明目。用于虚劳精亏，腰膝酸痛，眩晕耳鸣，阳痿遗精，内热消渴，血虚萎黄，目昏不明。"
+            },
+            {
+                name: "菊花",
+                alias: ["黄菊", "白菊", "杭菊", "贡菊"],
+                efficacy: ["散风清热", "平肝明目", "清热解毒", "风热感冒", "头痛眩晕", "目赤肿痛", "疮痈肿毒"],
+                desc: "菊花：散风清热，平肝明目，清热解毒。用于风热感冒，头痛眩晕，目赤肿痛，眼目昏花，疮痈肿毒。"
+            },
+            {
+                name: "人参",
+                alias: ["园参", "野山参", "生晒参", "红参"],
+                efficacy: ["大补元气", "复脉固脱", "益气摄血", "体虚欲脱", "肢冷脉微", "心力衰竭", "心原性休克"],
+                desc: "人参：大补元气，复脉固脱，益气摄血。用于体虚欲脱，肢冷脉微，气不摄血，崩漏下血；心力衰竭，心原性休克。"
+            },
+            {
+                name: "甘草",
+                alias: ["甘草片", "炙甘草", "生甘草"],
+                efficacy: ["补脾益气", "清热解毒", "祛痰止咳", "缓急止痛", "调和诸药", "脾胃虚弱", "心悸气短"],
+                desc: "甘草：补脾益气，清热解毒，祛痰止咳，缓急止痛，调和诸药。用于脾胃虚弱，倦怠乏力，心悸气短，咳嗽痰多。"
+            },
+            {
+                name: "金银花",
+                alias: ["忍冬", "银花", "双花"],
+                efficacy: ["清热解毒", "疏散风热", "痈肿疔疮", "喉痹", "丹毒", "热毒血痢", "风热感冒"],
+                desc: "金银花：清热解毒，疏散风热。用于痈肿疔疮，喉痹，丹毒，热毒血痢，风热感冒，温病发热。"
+            },
+            {
+                name: "黄芪",
+                alias: ["黄耆", "北芪"],
+                efficacy: ["补气升阳", "固表止汗", "利水消肿", "生津养血", "行滞通痹", "托毒排脓"],
+                desc: "黄芪：补气升阳，固表止汗，利水消肿，生津养血，行滞通痹，托毒排脓，敛疮生肌。用于气虚乏力，食少便溏，中气下陷，久泻脱肛，便血崩漏，表虚自汗，气虚水肿。"
+            },
+            {
+                name: "当归",
+                alias: ["干归", "西当归", "岷当归"],
+                efficacy: ["补血活血", "调经止痛", "润肠通便", "血虚萎黄", "眩晕心悸", "月经不调", "经闭痛经"],
+                desc: "当归：补血活血，调经止痛，润肠通便。用于血虚萎黄，眩晕心悸，月经不调，经闭痛经，虚寒腹痛，肠燥便秘，风湿痹痛，跌扑损伤，痈疽疮疡。"
+            },
+            {
+                name: "陈皮",
+                alias: ["橘皮", "广陈皮", "新会皮"],
+                efficacy: ["理气健脾", "燥湿化痰", "脘腹胀满", "食少吐泻", "咳嗽痰多"],
+                desc: "陈皮：理气健脾，燥湿化痰。用于脘腹胀满，食少吐泻，咳嗽痰多。"
+            },
+            {
+                name: "茯苓",
+                alias: ["云苓", "松苓", "茯灵"],
+                efficacy: ["利水渗湿", "健脾", "宁心", "水肿尿少", "痰饮眩悸", "脾虚食少", "便溏泄泻"],
+                desc: "茯苓：利水渗湿，健脾，宁心。用于水肿尿少，痰饮眩悸，脾虚食少，便溏泄泻，心神不安，惊悸失眠。"
+            },
+            {
+                name: "麦冬",
+                alias: ["麦门冬", "沿阶草"],
+                efficacy: ["养阴生津", "润肺清心", "肺燥干咳", "阴虚痨嗽", "喉痹咽痛", "津伤口渴"],
+                desc: "麦冬：养阴生津，润肺清心。用于肺燥干咳，阴虚痨嗽，喉痹咽痛，津伤口渴，内热消渴，心烦失眠，肠燥便秘。"
+            },
+            {
+                name: "丹参",
+                alias: ["红根", "紫丹参", "血参根"],
+                efficacy: ["活血祛瘀", "通经止痛", "清心除烦", "凉血消痈", "胸痹心痛", "脘腹胁痛"],
+                desc: "丹参：活血祛瘀，通经止痛，清心除烦，凉血消痈。用于胸痹心痛，脘腹胁痛，瘕瘕积聚，热痹疼痛，心烦不眠，月经不调，痛经经闭，疮疡肿痛。"
+            }
+        ];
 
-        // 模型处理核心类（扩展为5种药材）
+        // 模型处理核心类
         class HerbModelHandler {
             constructor(modelUrl = 'model/model.json', classNames = ['枸杞', '菊花', '人参', '甘草', '金银花']) {
                 this.modelUrl = modelUrl;
@@ -424,7 +559,6 @@
         }
 
         // 全局变量
-        // 若模型部署在远程，替换为实际HTTPS地址：new HerbModelHandler('https://xxx.com/model/model.json')
         const modelHandler = new HerbModelHandler();
         let webcam = null;
         let currentMode = null;
@@ -432,7 +566,7 @@
 
         // DOM元素
         const startCamBtn = document.getElementById('start-cam-btn');
-        const flipCamBtn = document.getElementById('flip-cam-btn'); // 新增反转镜头按钮
+        const flipCamBtn = document.getElementById('flip-cam-btn');
         const imageUpload = document.getElementById('image-upload');
         const identifyBtn = document.getElementById('identify-btn');
         const resetBtn = document.getElementById('reset-btn');
@@ -447,10 +581,11 @@
         const progressBar = document.getElementById('progress-bar');
         const offlineAlert = document.getElementById('offline-alert');
         const herbTips = document.getElementById('herb-tips');
-        const wikiBtn = document.getElementById('wiki-btn'); // 新增百科按钮
-        // 新增搜索引擎元素
+        const wikiBtn = document.getElementById('wiki-btn');
+        // 搜索引擎元素
         const herbSearchInput = document.getElementById('herb-search-input');
         const herbSearchBtn = document.getElementById('herb-search-btn');
+        const searchResults = document.getElementById('search-results');
 
         // 概率显示元素映射
         const probElements = {
@@ -478,7 +613,6 @@
             }
 
             const loadSuccess = await modelHandler.loadModel((progress) => {
-                // 更新加载进度
                 progressBar.style.width = `${progress}%`;
                 statusElement.textContent = `加载模型中... ${progress}%`;
             });
@@ -496,7 +630,7 @@
             flipCamBtn.disabled = true;
         };
 
-        // 相机初始化通用方法（重构用于反转镜头）
+        // 相机初始化通用方法
         async function initCamera(facingMode) {
             try {
                 statusElement.textContent = `正在打开${facingMode === 'environment' ? '后置' : '前置'}摄像头...`;
@@ -524,7 +658,7 @@
                 webcam = await tf.data.webcam(webcamElement);
                 
                 currentCameraFacing = facingMode;
-                flipCamBtn.disabled = false; // 启用反转镜头按钮
+                flipCamBtn.disabled = false;
                 identifyBtn.disabled = false;
                 statusElement.textContent = `已打开${facingMode === 'environment' ? '后置' : '前置'}摄像头，请对准药材`;
             } catch (error) {
@@ -533,22 +667,22 @@
             }
         }
 
-        // 相机识别模式（重构后）
+        // 相机识别模式
         startCamBtn.addEventListener('click', async () => {
             currentMode = 'camera';
             uploadedImage.style.display = 'none';
             mediaPlaceholder.classList.add('hidden');
             webcamElement.style.display = 'block';
-            await initCamera('environment'); // 默认后置摄像头
+            await initCamera('environment');
         });
 
-        // 新增：反转镜头功能
+        // 反转镜头功能
         flipCamBtn.addEventListener('click', async () => {
             const newFacingMode = currentCameraFacing === 'environment' ? 'user' : 'environment';
             await initCamera(newFacingMode);
         });
 
-        // 上传图片识别模式（优化移动端体验）
+        // 上传图片识别模式
         imageUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -560,8 +694,8 @@
                 return;
             }
             
-            // 限制图片大小（移动端避免过大图片）
-            const maxSize = 5 * 1024 * 1024; // 5MB
+            // 限制图片大小（5MB）
+            const maxSize = 5 * 1024 * 1024;
             if (file.size > maxSize) {
                 statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>图片大小不超过5MB</span>`;
                 return;
@@ -624,7 +758,8 @@
                     });
 
                     // 显示药材知识和百科按钮
-                    herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i>${herbKnowledge[result.predictedClass]}</p>`;
+                    const herbInfo = herbDatabase.find(item => item.name === result.predictedClass);
+                    herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i>${herbInfo ? herbInfo.desc : '暂无该药材介绍'}</p>`;
                     // 构建百度百科链接
                     const wikiUrl = `https://baike.baidu.com/item/${encodeURIComponent(result.predictedClass)}`;
                     wikiBtn.href = wikiUrl;
@@ -667,29 +802,68 @@
             
             imageUpload.value = '';
             currentMode = null;
-            flipCamBtn.disabled = true; // 禁用反转镜头按钮
+            flipCamBtn.disabled = true;
             identifyBtn.disabled = true;
             statusElement.textContent = '请选择识别方式（相机/上传图片）';
         });
 
-        // 新增：中药搜索引擎功能
-        function searchHerb() {
-            const herbName = herbSearchInput.value.trim();
-            if (!herbName) {
-                statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>请输入中药名称</span>`;
+        // 智能搜索功能 - 核心逻辑
+        function smartSearchHerb(keyword) {
+            if (!keyword) {
+                searchResults.innerHTML = `<div class="no-result"><i class="fa fa-info-circle mr-1"></i>请输入中药名称或药效关键词</div>`;
                 return;
             }
-            // 跳转到百度百科搜索
-            const searchUrl = `https://baike.baidu.com/search?word=${encodeURIComponent(herbName + ' 中药')}`;
-            window.open(searchUrl, '_blank');
+
+            // 显示加载状态
+            searchResults.innerHTML = `<div class="search-loading"><i class="fa fa-circle-o-notch loading-spinner mr-1"></i>搜索中...</div>`;
+
+            // 延迟模拟搜索（提升用户体验）
+            setTimeout(() => {
+                const lowerKeyword = keyword.toLowerCase().trim();
+                // 匹配逻辑：名称/别名/药效包含关键词
+                const matchedHerbs = herbDatabase.filter(herb => {
+                    // 名称匹配
+                    const nameMatch = herb.name.toLowerCase().includes(lowerKeyword);
+                    // 别名匹配
+                    const aliasMatch = herb.alias.some(alias => alias.toLowerCase().includes(lowerKeyword));
+                    // 药效匹配
+                    const efficacyMatch = herb.efficacy.some(eff => eff.toLowerCase().includes(lowerKeyword));
+                    return nameMatch || aliasMatch || efficacyMatch;
+                });
+
+                // 渲染搜索结果
+                if (matchedHerbs.length === 0) {
+                    searchResults.innerHTML = `<div class="no-result"><i class="fa fa-search mr-1"></i>未找到相关中药，请尝试其他关键词</div>`;
+                    return;
+                }
+
+                // 生成结果HTML
+                let resultsHtml = '';
+                matchedHerbs.forEach(herb => {
+                    const wikiUrl = `https://baike.baidu.com/item/${encodeURIComponent(herb.name)}`;
+                    resultsHtml += `
+                        <div class="search-result-item">
+                            <div class="result-title">${herb.name}</div>
+                            <div class="result-desc">${herb.desc}</div>
+                            <a href="${wikiUrl}" class="wiki-btn" target="_blank">
+                                <i class="fa fa-external-link mr-1"></i> 查看百度百科
+                            </a>
+                        </div>
+                    `;
+                });
+                searchResults.innerHTML = resultsHtml;
+            }, 300);
         }
 
         // 搜索按钮点击事件
-        herbSearchBtn.addEventListener('click', searchHerb);
+        herbSearchBtn.addEventListener('click', () => {
+            smartSearchHerb(herbSearchInput.value);
+        });
+
         // 输入框回车事件
         herbSearchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                searchHerb();
+                smartSearchHerb(herbSearchInput.value);
             }
         });
 
