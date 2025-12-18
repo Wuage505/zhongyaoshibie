@@ -142,6 +142,70 @@
                 background-color: #5865f2;
                 color: #fff;
             }
+            .search-container input {
+                background-color: #374151;
+                color: #fff;
+                border-color: #4b5563;
+            }
+            .search-container button {
+                background-color: #5865f2;
+                color: #fff;
+            }
+        }
+        /* 百科按钮样式 */
+        .wiki-btn {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 12px;
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        .wiki-btn:hover {
+            background-color: #2563eb;
+        }
+        /* 搜索引擎样式 */
+        .search-container {
+            margin-top: 20px;
+            padding: 16px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            dark:bg-gray-800;
+        }
+        .search-container h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #166534;
+            dark:text-green-400;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .search-input-group {
+            display: flex;
+            gap: 8px;
+        }
+        .search-input-group input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            dark:bg-gray-700;
+            dark:border-gray-600;
+            dark:color-white;
+        }
+        .search-input-group button {
+            padding: 0 16px;
+            background-color: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            dark:bg-green-600;
         }
     </style>
 </head>
@@ -187,6 +251,10 @@
         <button id="start-cam-btn" class="btn mobile-btn bg-blue-500 hover:bg-blue-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700">
             <i class="fa fa-video-camera mr-2"></i> 相机识别
         </button>
+        <!-- 新增反转镜头按钮 -->
+        <button id="flip-cam-btn" class="btn mobile-btn bg-gray-500 hover:bg-gray-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-gray-700 dark:hover:bg-gray-600">
+            <i class="fa fa-exchange mr-2"></i> 反转镜头
+        </button>
         <label for="image-upload" class="btn mobile-btn bg-purple-500 hover:bg-purple-600 text-white px-5 py-3 rounded-full flex items-center shadow-md cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-purple-600 dark:hover:bg-purple-700">
             <i class="fa fa-upload mr-2"></i> 上传图片
         </label>
@@ -226,9 +294,12 @@
                 <p id="honeysuckle" class="font-bold text-green-500 dark:text-green-400">--%</p>
             </div>
         </div>
-        <!-- 药材小知识 -->
+        <!-- 药材小知识（新增百科按钮） -->
         <div id="herb-tips" class="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-600 dark:bg-gray-700 dark:text-gray-200">
             <p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i> 识别结果后将显示对应药材的简要介绍</p>
+            <a id="wiki-btn" href="#" class="wiki-btn hidden" target="_blank">
+                <i class="fa fa-external-link mr-1"></i> 查看百度百科
+            </a>
         </div>
         <!-- 重新识别按钮 -->
         <button id="reset-btn" class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg btn mobile-btn dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500">
@@ -239,6 +310,17 @@
     <!-- 状态提示 -->
     <div id="status" class="text-center text-gray-500 dark:text-gray-300 text-sm py-2">
         <i class="fa fa-circle-o-notch fa-spin mr-1 loading-spinner"></i> 加载模型中...
+    </div>
+
+    <!-- 新增中药搜索引擎 -->
+    <div class="search-container">
+        <h3><i class="fa fa-search mr-2"></i>中药百科搜索</h3>
+        <div class="search-input-group">
+            <input type="text" id="herb-search-input" placeholder="输入中药名称（如：黄芪、当归）" autocomplete="off">
+            <button id="herb-search-btn" class="btn mobile-btn">
+                <i class="fa fa-search"></i>
+            </button>
+        </div>
     </div>
 
     <script>
@@ -346,9 +428,11 @@
         const modelHandler = new HerbModelHandler();
         let webcam = null;
         let currentMode = null;
+        let currentCameraFacing = 'environment'; // 初始后置摄像头
 
         // DOM元素
         const startCamBtn = document.getElementById('start-cam-btn');
+        const flipCamBtn = document.getElementById('flip-cam-btn'); // 新增反转镜头按钮
         const imageUpload = document.getElementById('image-upload');
         const identifyBtn = document.getElementById('identify-btn');
         const resetBtn = document.getElementById('reset-btn');
@@ -363,6 +447,10 @@
         const progressBar = document.getElementById('progress-bar');
         const offlineAlert = document.getElementById('offline-alert');
         const herbTips = document.getElementById('herb-tips');
+        const wikiBtn = document.getElementById('wiki-btn'); // 新增百科按钮
+        // 新增搜索引擎元素
+        const herbSearchInput = document.getElementById('herb-search-input');
+        const herbSearchBtn = document.getElementById('herb-search-btn');
 
         // 概率显示元素映射
         const probElements = {
@@ -403,56 +491,61 @@
             } else {
                 statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>模型加载失败：请检查model文件夹或网络</span>`;
             }
+
+            // 初始化反转镜头按钮为禁用状态
+            flipCamBtn.disabled = true;
         };
 
-        // 相机识别模式（优化移动端兼容性）
-        startCamBtn.addEventListener('click', async () => {
+        // 相机初始化通用方法（重构用于反转镜头）
+        async function initCamera(facingMode) {
             try {
-                statusElement.textContent = '正在打开相机...';
-                currentMode = 'camera';
+                statusElement.textContent = `正在打开${facingMode === 'environment' ? '后置' : '前置'}摄像头...`;
                 
-                uploadedImage.style.display = 'none';
-                mediaPlaceholder.classList.add('hidden');
-                webcamElement.style.display = 'block';
+                // 停止现有相机流
+                if (webcamElement.srcObject) {
+                    webcamElement.srcObject.getTracks().forEach(track => track.stop());
+                }
 
-                // 适配不同移动端的相机权限
-                const stream = await navigator.mediaDevices.getUserMedia({
+                // 配置相机参数
+                const constraints = {
                     video: { 
-                        facingMode: { ideal: 'environment' },
+                        facingMode: facingMode,
                         width: { ideal: 320, max: 480 },
                         height: { ideal: 480, max: 640 },
-                        frameRate: { ideal: 20, max: 30 } // 降低帧率减少卡顿
+                        frameRate: { ideal: 20, max: 30 }
                     }
-                });
+                };
 
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
                 webcamElement.srcObject = stream;
-                // 等待相机流加载完成
                 await new Promise(resolve => {
                     webcamElement.onloadeddata = resolve;
                 });
                 webcam = await tf.data.webcam(webcamElement);
                 
+                currentCameraFacing = facingMode;
+                flipCamBtn.disabled = false; // 启用反转镜头按钮
                 identifyBtn.disabled = false;
-                statusElement.textContent = '请对准药材，点击开始识别';
+                statusElement.textContent = `已打开${facingMode === 'environment' ? '后置' : '前置'}摄像头，请对准药材`;
             } catch (error) {
-                // 兼容无后置摄像头的设备
-                if (error.message.includes('facingMode')) {
-                    try {
-                        const stream = await navigator.mediaDevices.getUserMedia({
-                            video: { width: { ideal: 320 }, height: { ideal: 480 } }
-                        });
-                        webcamElement.srcObject = stream;
-                        webcam = await tf.data.webcam(webcamElement);
-                        identifyBtn.disabled = false;
-                        statusElement.textContent = '使用前置摄像头，请对准药材';
-                    } catch (e) {
-                        statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>相机打开失败：请允许权限</span>`;
-                    }
-                } else {
-                    statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>相机打开失败：请允许权限或使用HTTPS</span>`;
-                }
-                console.error('相机错误：', error);
+                console.error('相机初始化失败：', error);
+                statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>相机打开失败：${error.message}</span>`;
             }
+        }
+
+        // 相机识别模式（重构后）
+        startCamBtn.addEventListener('click', async () => {
+            currentMode = 'camera';
+            uploadedImage.style.display = 'none';
+            mediaPlaceholder.classList.add('hidden');
+            webcamElement.style.display = 'block';
+            await initCamera('environment'); // 默认后置摄像头
+        });
+
+        // 新增：反转镜头功能
+        flipCamBtn.addEventListener('click', async () => {
+            const newFacingMode = currentCameraFacing === 'environment' ? 'user' : 'environment';
+            await initCamera(newFacingMode);
         });
 
         // 上传图片识别模式（优化移动端体验）
@@ -530,8 +623,13 @@
                         }
                     });
 
-                    // 显示药材知识
+                    // 显示药材知识和百科按钮
                     herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i>${herbKnowledge[result.predictedClass]}</p>`;
+                    // 构建百度百科链接
+                    const wikiUrl = `https://baike.baidu.com/item/${encodeURIComponent(result.predictedClass)}`;
+                    wikiBtn.href = wikiUrl;
+                    wikiBtn.classList.remove('hidden');
+                    herbTips.appendChild(wikiBtn);
 
                     resultCard.classList.add('show');
                     statusElement.textContent = '识别完成';
@@ -563,13 +661,36 @@
             Object.values(probElements).forEach(el => el.textContent = '--%');
             document.querySelectorAll('.prob-item').forEach(item => item.classList.remove('highlight'));
             
-            // 重置药材知识
+            // 重置药材知识和百科按钮
             herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i> 识别结果后将显示对应药材的简要介绍</p>`;
+            wikiBtn.classList.add('hidden');
             
             imageUpload.value = '';
             currentMode = null;
+            flipCamBtn.disabled = true; // 禁用反转镜头按钮
             identifyBtn.disabled = true;
             statusElement.textContent = '请选择识别方式（相机/上传图片）';
+        });
+
+        // 新增：中药搜索引擎功能
+        function searchHerb() {
+            const herbName = herbSearchInput.value.trim();
+            if (!herbName) {
+                statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>请输入中药名称</span>`;
+                return;
+            }
+            // 跳转到百度百科搜索
+            const searchUrl = `https://baike.baidu.com/search?word=${encodeURIComponent(herbName + ' 中药')}`;
+            window.open(searchUrl, '_blank');
+        }
+
+        // 搜索按钮点击事件
+        herbSearchBtn.addEventListener('click', searchHerb);
+        // 输入框回车事件
+        herbSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchHerb();
+            }
         });
 
         // 移动端返回键处理
