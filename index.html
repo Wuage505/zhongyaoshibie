@@ -133,6 +133,31 @@
             margin-top: 4px;
             display: none;
         }
+        /* 配伍样式 */
+        .compatibility-section {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #d1d5db;
+            dark:border-top: 1px dashed #4b5563;
+        }
+        .compatibility-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #92400e;
+            dark:color: #f59e0b;
+            margin-bottom: 4px;
+        }
+        .compatibility-item {
+            font-size: 12px;
+            margin-bottom: 3px;
+            line-height: 1.4;
+        }
+        .compatibility-item i {
+            font-size: 11px;
+            margin-right: 4px;
+            color: #059669;
+            dark:color: #10b981;
+        }
         @media (prefers-color-scheme: dark) {
             body {
                 background-color: #1f2937;
@@ -168,6 +193,9 @@
             }
             .cam-tip {
                 color: #9ca3af;
+            }
+            .compatibility-section {
+                border-top: 1px dashed #4b5563;
             }
         }
     </style>
@@ -272,6 +300,80 @@
             金银花: "金银花：清热解毒，疏散风热。用于痈肿疔疮，喉痹，丹毒，热毒血痢，风热感冒，温病发热。"
         };
 
+        // 新增：药材配伍数据库
+        const herbCompatibility = {
+            枸杞: [
+                {
+                    partners: "枸杞 + 菊花",
+                    effect: "清肝明目、滋补肝肾，适合用眼过度、肝肾阴虚人群，缓解眼睛干涩、视力模糊"
+                },
+                {
+                    partners: "枸杞 + 红枣",
+                    effect: "补气养血、安神养颜，改善气血不足引起的面色萎黄、失眠多梦"
+                },
+                {
+                    partners: "枸杞 + 黄芪",
+                    effect: "益气养阴、扶正固本，增强免疫力，适合体质虚弱、易疲劳人群"
+                }
+            ],
+            菊花: [
+                {
+                    partners: "菊花 + 金银花",
+                    effect: "清热解毒、疏散风热，用于风热感冒、咽喉肿痛、口干舌燥"
+                },
+                {
+                    partners: "菊花 + 决明子",
+                    effect: "清肝明目、润肠通便，改善肝火旺盛引起的目赤肿痛、大便干结"
+                },
+                {
+                    partners: "菊花 + 薄荷",
+                    effect: "疏风散热、清利头目，缓解风热头痛、咽喉肿痛"
+                }
+            ],
+            人参: [
+                {
+                    partners: "人参 + 黄芪",
+                    effect: "大补元气、益气固表，用于气虚乏力、自汗、易感冒等气虚症状"
+                },
+                {
+                    partners: "人参 + 麦冬 + 五味子",
+                    effect: "益气养阴、生津止汗，适合气阴两虚引起的心悸、口干、盗汗"
+                },
+                {
+                    partners: "人参 + 白术 + 茯苓",
+                    effect: "益气健脾、渗湿止泻，改善脾胃虚弱引起的食欲不振、消化不良"
+                }
+            ],
+            甘草: [
+                {
+                    partners: "甘草 + 桔梗",
+                    effect: "宣肺利咽、祛痰止咳，用于咳嗽痰多、咽喉肿痛"
+                },
+                {
+                    partners: "甘草 + 白芍",
+                    effect: "缓急止痛，缓解腹部、四肢拘挛疼痛"
+                },
+                {
+                    partners: "甘草 + 金银花 + 连翘",
+                    effect: "清热解毒、消肿散结，用于疮疡肿毒、风热感冒"
+                }
+            ],
+            金银花: [
+                {
+                    partners: "金银花 + 连翘",
+                    effect: "清热解毒、疏散风热，增强清热效果，用于风热感冒、温病初起"
+                },
+                {
+                    partners: "金银花 + 蒲公英",
+                    effect: "清热解毒、消肿散结，用于疮痈肿毒、乳腺炎、咽喉肿痛"
+                },
+                {
+                    partners: "金银花 + 麦冬",
+                    effect: "清热养阴，用于热病后期余热未清、口干咽燥"
+                }
+            ]
+        };
+
         class HerbModelHandler {
             constructor(modelUrl = 'model/model.json', classNames = ['枸杞', '菊花', '人参', '甘草', '金银花']) {
                 this.modelUrl = modelUrl;
@@ -351,6 +453,30 @@
                     return null;
                 }
             }
+        }
+
+        // 新增：生成配伍HTML
+        function generateCompatibilityHtml(herbName) {
+            const compatibility = herbCompatibility[herbName];
+            if (!compatibility || compatibility.length === 0) {
+                return '';
+            }
+            
+            let html = `
+                <div class="compatibility-section">
+                    <div class="compatibility-title"><i class="fa fa-users"></i> 常见搭配及功效</div>
+            `;
+            
+            compatibility.forEach(item => {
+                html += `
+                    <div class="compatibility-item">
+                        <i class="fa fa-leaf"></i><strong>${item.partners}：</strong>${item.effect}
+                    </div>
+                `;
+            });
+            
+            html += `</div>`;
+            return html;
         }
 
         // 全局变量
@@ -609,7 +735,13 @@
                         }
                     });
 
-                    herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i>${herbKnowledge[result.predictedClass]}</p>`;
+                    // 修改：添加配伍信息
+                    const compatibilityHtml = generateCompatibilityHtml(result.predictedClass);
+                    herbTips.innerHTML = `
+                        <p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i>${herbKnowledge[result.predictedClass]}</p>
+                        ${compatibilityHtml}
+                    `;
+                    
                     const wikiUrl = `https://baike.baidu.com/item/${encodeURIComponent(result.predictedClass)}`;
                     wikiBtn.href = wikiUrl;
                     wikiBtn.classList.remove('hidden');
