@@ -6,7 +6,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
-    <!-- 标题已删除“五味药材” -->
     <title>中药识别</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
@@ -15,12 +14,12 @@
         body {
             background-color: #f5f5f5;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            touch-action: manipulation; /* 禁用触屏双击缩放 */
+            touch-action: manipulation;
         }
         .media-container {
             position: relative;
             width: 100%;
-            padding-top: 133%; /* 4:3比例 */
+            padding-top: 133%;
             overflow: hidden;
             border-radius: 16px;
             background-color: #000;
@@ -83,13 +82,11 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             background-color: #f0f9ff;
         }
-        /* 移动端按钮适配 */
         .mobile-btn {
-            min-height: 56px; /* 符合移动端可点击区域标准 */
+            min-height: 56px;
             min-width: 56px;
             font-size: 16px;
         }
-        /* 加载进度条 */
         .model-progress {
             height: 2px;
             background: #e5e7eb;
@@ -104,7 +101,6 @@
             width: 0%;
             transition: width 0.3s ease;
         }
-        /* 离线提示 */
         .offline-alert {
             background: #fef2f2;
             color: #dc2626;
@@ -115,7 +111,6 @@
             margin-bottom: 16px;
             display: none;
         }
-        /* 百科跳转按钮样式 */
         .wiki-btn {
             display: inline-block;
             margin-top: 8px;
@@ -130,7 +125,14 @@
         .wiki-btn:hover {
             background-color: #2563eb;
         }
-        /* 深色模式适配 */
+        /* 摄像头切换提示 */
+        .cam-tip {
+            font-size: 11px;
+            color: #6b7280;
+            text-align: center;
+            margin-top: 4px;
+            display: none;
+        }
         @media (prefers-color-scheme: dark) {
             body {
                 background-color: #1f2937;
@@ -164,38 +166,34 @@
             .wiki-btn:hover {
                 background-color: #1d4ed8;
             }
+            .cam-tip {
+                color: #9ca3af;
+            }
         }
     </style>
 </head>
 <body class="p-4 max-w-md mx-auto">
-    <!-- 离线提示 -->
     <div id="offline-alert" class="offline-alert">
         <i class="fa fa-wifi-slash mr-1"></i> 检测到离线状态，模型加载失败
     </div>
 
-    <!-- 标题区域 -->
     <div class="text-center mb-6">
         <h1 class="text-[clamp(1.5rem,5vw,2rem)] font-bold text-green-700 dark:text-green-400">
             <i class="fa fa-leaf mr-2"></i>中药识别
         </h1>
         <p class="text-gray-500 dark:text-gray-300 text-sm">支持拍照或上传图片识别：枸杞、菊花、人参、甘草、金银花</p>
-        
-        <!-- 模型加载进度 -->
         <div class="model-progress mx-auto max-w-xs">
             <div id="progress-bar" class="progress-bar"></div>
         </div>
     </div>
 
-    <!-- 媒体展示区域 -->
     <div class="media-container mb-6 relative">
         <video id="webcam" autoplay muted playsinline style="display: none;"></video>
         <img id="uploaded-image" alt="上传的图片">
-        <!-- 初始提示 -->
         <div id="media-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-white">
             <i class="fa fa-camera text-5xl mb-3 opacity-70"></i>
             <p class="text-sm opacity-70">点击下方按钮选择识别方式</p>
         </div>
-        <!-- 加载遮罩 -->
         <div id="loading-mask" class="loading-mask hidden">
             <div class="flex flex-col items-center text-white">
                 <i class="fa fa-circle-o-notch loading-spinner text-4xl mb-2"></i>
@@ -204,7 +202,6 @@
         </div>
     </div>
 
-    <!-- 控制按钮（保留反转镜头按钮） -->
     <div class="flex flex-wrap justify-center gap-3 mb-6">
         <button id="start-cam-btn" class="btn mobile-btn bg-blue-500 hover:bg-blue-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700">
             <i class="fa fa-video-camera mr-2"></i> 相机识别
@@ -212,6 +209,8 @@
         <button id="flip-cam-btn" class="btn mobile-btn bg-gray-500 hover:bg-gray-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-gray-700 dark:hover:bg-gray-600">
             <i class="fa fa-exchange mr-2"></i> 反转镜头
         </button>
+        <!-- 摄像头切换提示 -->
+        <div id="cam-tip" class="cam-tip col-span-full">部分手机需授权后才能切换摄像头</div>
         <label for="image-upload" class="btn mobile-btn bg-purple-500 hover:bg-purple-600 text-white px-5 py-3 rounded-full flex items-center shadow-md cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-purple-600 dark:hover:bg-purple-700">
             <i class="fa fa-upload mr-2"></i> 上传图片
         </label>
@@ -221,14 +220,12 @@
         </button>
     </div>
 
-    <!-- 结果展示区域 -->
     <div id="result-card" class="result-card bg-white rounded-xl shadow-md p-5 mb-6 dark:bg-gray-800">
         <h2 class="text-xl font-semibold text-center mb-4 dark:text-white">识别结果</h2>
         <div class="text-center mb-4">
             <p id="prediction" class="text-[clamp(1.5rem,5vw,2rem)] font-bold text-purple-600 dark:text-purple-400">--</p>
             <p id="confidence" class="text-gray-500 dark:text-gray-300">可信度：--%</p>
         </div>
-        <!-- 概率分布（5种药材） -->
         <div class="grid grid-cols-2 gap-3 mb-2">
             <div class="prob-item bg-gray-50 p-3 rounded-lg dark:bg-gray-700" data-herb="枸杞">
                 <p class="text-sm text-gray-500 dark:text-gray-300">枸杞</p>
@@ -251,26 +248,22 @@
                 <p id="honeysuckle" class="font-bold text-green-500 dark:text-green-400">--%</p>
             </div>
         </div>
-        <!-- 药材小知识（保留百科跳转按钮） -->
         <div id="herb-tips" class="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-600 dark:bg-gray-700 dark:text-gray-200">
             <p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i> 识别结果后将显示对应药材的简要介绍</p>
             <a id="wiki-btn" href="#" class="wiki-btn hidden" target="_blank">
                 <i class="fa fa-external-link mr-1"></i> 查看百度百科
             </a>
         </div>
-        <!-- 重新识别按钮 -->
         <button id="reset-btn" class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg btn mobile-btn dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500">
             <i class="fa fa-refresh mr-1"></i> 重新识别
         </button>
     </div>
 
-    <!-- 状态提示 -->
     <div id="status" class="text-center text-gray-500 dark:text-gray-300 text-sm py-2">
         <i class="fa fa-circle-o-notch fa-spin mr-1 loading-spinner"></i> 加载模型中...
     </div>
 
     <script>
-        // 药材知识库
         const herbKnowledge = {
             枸杞: "枸杞：滋补肝肾，益精明目。用于虚劳精亏，腰膝酸痛，眩晕耳鸣，阳痿遗精，内热消渴，血虚萎黄，目昏不明。",
             菊花: "菊花：散风清热，平肝明目，清热解毒。用于风热感冒，头痛眩晕，目赤肿痛，眼目昏花，疮痈肿毒。",
@@ -279,7 +272,6 @@
             金银花: "金银花：清热解毒，疏散风热。用于痈肿疔疮，喉痹，丹毒，热毒血痢，风热感冒，温病发热。"
         };
 
-        // 模型处理核心类（扩展为5种药材）
         class HerbModelHandler {
             constructor(modelUrl = 'model/model.json', classNames = ['枸杞', '菊花', '人参', '甘草', '金银花']) {
                 this.modelUrl = modelUrl;
@@ -288,16 +280,12 @@
                 this.isLoaded = false;
             }
 
-            // 加载模型（带进度回调）
             async loadModel(onProgress) {
                 try {
                     if (this.isLoaded) return true;
-                    
-                    // 配置TF.js优化
                     tf.ENV.set('WEBGL_PACK_DEPTHWISECONV', false);
                     tf.ENV.set('WEBGL_FORCE_F16_TEXTURES', true);
                     
-                    // 监听模型加载进度
                     const model = await tf.loadLayersModel(this.modelUrl, {
                         onProgress: (progress) => {
                             onProgress && onProgress(Math.floor(progress * 100));
@@ -315,13 +303,11 @@
                 }
             }
 
-            // 图像预处理（优化移动端性能）
             preprocessImage(imgTensor) {
                 return tf.tidy(() => {
                     const rgbTensor = imgTensor.shape[2] === 4 
                         ? imgTensor.slice([0, 0, 0], [-1, -1, 3]) 
                         : imgTensor;
-                    // 移动端使用更轻量的插值方式
                     return rgbTensor.resizeBilinear([224, 224])
                         .toFloat()
                         .div(255.0)
@@ -329,7 +315,6 @@
                 });
             }
 
-            // 执行推理（适配5分类）
             async predict(imgTensor) {
                 if (!this.isLoaded || !this.model) {
                     console.error('模型未加载');
@@ -341,7 +326,6 @@
                     const predictions = await this.model.predict(processedImg).data();
                     const scores = Array.from(predictions);
 
-                    // 归一化概率
                     const total = scores.reduce((a, b) => a + b, 0);
                     const normalizedScores = scores.map(s => total === 0 ? 0 : s / total);
 
@@ -373,11 +357,13 @@
         const modelHandler = new HerbModelHandler();
         let webcam = null;
         let currentMode = null;
-        let currentCameraFacing = 'environment'; // 记录当前摄像头方向：environment后置/user前置
+        let currentCameraFacing = 'environment';
+        let mediaStream = null; // 保存媒体流引用
 
         // DOM元素
         const startCamBtn = document.getElementById('start-cam-btn');
         const flipCamBtn = document.getElementById('flip-cam-btn');
+        const camTip = document.getElementById('cam-tip');
         const imageUpload = document.getElementById('image-upload');
         const identifyBtn = document.getElementById('identify-btn');
         const resetBtn = document.getElementById('reset-btn');
@@ -394,7 +380,6 @@
         const herbTips = document.getElementById('herb-tips');
         const wikiBtn = document.getElementById('wiki-btn');
 
-        // 概率显示元素映射
         const probElements = {
             枸杞: document.getElementById('wolfberry'),
             菊花: document.getElementById('chrysanthemum'),
@@ -412,53 +397,115 @@
             statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>网络已断开</span>`;
         });
 
-        // 初始化摄像头函数
+        // ========== 修复核心：兼容多设备的摄像头切换函数 ==========
+        async function getCameraConstraints(facingMode) {
+            // 方案1：标准facingMode（大部分安卓手机）
+            const constraints1 = {
+                video: {
+                    facingMode: facingMode,
+                    width: { ideal: 320, max: 480 },
+                    height: { ideal: 480, max: 640 },
+                    frameRate: { ideal: 15, max: 30 } // 降低帧率提升兼容性
+                }
+            };
+
+            // 方案2：旧版语法（兼容iOS/Safari）
+            const constraints2 = {
+                video: {
+                    facingMode: { exact: facingMode },
+                    width: { ideal: 320 },
+                    height: { ideal: 480 }
+                }
+            };
+
+            // 方案3：不指定facingMode（降级方案）
+            const constraints3 = {
+                video: {
+                    width: { ideal: 320 },
+                    height: { ideal: 480 }
+                }
+            };
+
+            return [constraints1, constraints2, constraints3];
+        }
+
         async function initCamera(facingMode) {
+            // 显示切换提示
+            camTip.style.display = 'block';
+            setTimeout(() => camTip.style.display = 'none', 3000);
+
             try {
                 statusElement.textContent = `正在打开${facingMode === 'environment' ? '后置' : '前置'}摄像头...`;
                 
-                // 停止当前摄像头流
-                if (webcamElement.srcObject) {
-                    webcamElement.srcObject.getTracks().forEach(track => track.stop());
+                // 停止现有流
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                    mediaStream = null;
                 }
 
-                const constraints = {
-                    video: { 
-                        facingMode: facingMode,
-                        width: { ideal: 320, max: 480 },
-                        height: { ideal: 480, max: 640 },
-                        frameRate: { ideal: 20, max: 30 }
-                    }
-                };
+                // 获取多套约束方案
+                const constraintsList = await getCameraConstraints(facingMode);
+                let stream = null;
 
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                // 依次尝试不同的约束方案
+                for (let i = 0; i < constraintsList.length; i++) {
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia(constraintsList[i]);
+                        break; // 成功则退出循环
+                    } catch (e) {
+                        console.log(`方案${i+1}失败：`, e.message);
+                        if (i === constraintsList.length - 1) throw e; // 所有方案都失败
+                    }
+                }
+
+                // 保存媒体流引用
+                mediaStream = stream;
                 webcamElement.srcObject = stream;
-                await new Promise(resolve => {
-                    webcamElement.onloadeddata = resolve;
+                
+                // 等待视频加载
+                await new Promise((resolve) => {
+                    webcamElement.onloadedmetadata = resolve;
                 });
+
+                // 初始化tfjs webcam
                 webcam = await tf.data.webcam(webcamElement);
                 
                 currentCameraFacing = facingMode;
                 flipCamBtn.disabled = false;
                 identifyBtn.disabled = false;
-                statusElement.textContent = `已打开${facingMode === 'environment' ? '后置' : '前置'}摄像头，请对准药材`;
+                
+                // 检测实际摄像头方向（兼容识别）
+                const track = stream.getVideoTracks()[0];
+                const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+                if (capabilities.facingMode) {
+                    currentCameraFacing = track.getSettings().facingMode || facingMode;
+                }
+
+                statusElement.textContent = `已打开${currentCameraFacing === 'environment' ? '后置' : '前置'}摄像头，请对准药材`;
             } catch (error) {
                 console.error('相机初始化失败：', error);
-                statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>相机打开失败：${error.message}</span>`;
+                
+                // 更友好的错误提示
+                if (error.message.includes('permission')) {
+                    statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>请在手机设置中允许摄像头权限</span>`;
+                } else if (error.message.includes('not found') || error.message.includes('device')) {
+                    statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>未检测到${facingMode === 'environment' ? '后置' : '前置'}摄像头</span>`;
+                } else {
+                    statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>相机打开失败：${error.message}</span>`;
+                }
+                
                 flipCamBtn.disabled = true;
                 identifyBtn.disabled = true;
             }
         }
 
-        // 页面加载完成后初始化模型
+        // 页面加载
         window.onload = async () => {
-            // 检测离线状态
             if (!navigator.onLine) {
                 offlineAlert.style.display = 'block';
             }
 
             const loadSuccess = await modelHandler.loadModel((progress) => {
-                // 更新加载进度
                 progressBar.style.width = `${progress}%`;
                 statusElement.textContent = `加载模型中... ${progress}%`;
             });
@@ -474,35 +521,36 @@
             flipCamBtn.disabled = true;
         };
 
-        // 相机识别模式
+        // 相机识别
         startCamBtn.addEventListener('click', async () => {
             currentMode = 'camera';
             uploadedImage.style.display = 'none';
             mediaPlaceholder.classList.add('hidden');
             webcamElement.style.display = 'block';
-            await initCamera('environment'); // 默认打开后置摄像头
+            await initCamera('environment');
         });
 
-        // 反转镜头功能
+        // 修复反转镜头功能
         flipCamBtn.addEventListener('click', async () => {
+            // 禁用按钮防止重复点击
+            flipCamBtn.disabled = true;
+            
             const newFacingMode = currentCameraFacing === 'environment' ? 'user' : 'environment';
             await initCamera(newFacingMode);
         });
 
-        // 上传图片识别模式
+        // 上传图片
         imageUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            // 图片格式和大小校验
             const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
             if (!validTypes.includes(file.type)) {
                 statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>请上传JPG/PNG格式图片</span>`;
                 return;
             }
             
-            // 限制图片大小（移动端避免过大图片）
-            const maxSize = 5 * 1024 * 1024; // 5MB
+            const maxSize = 5 * 1024 * 1024;
             if (file.size > maxSize) {
                 statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>图片大小不超过5MB</span>`;
                 return;
@@ -547,16 +595,13 @@
                 const result = await modelHandler.predict(imgTensor);
 
                 if (result) {
-                    // 更新识别结果
                     predictionElement.textContent = result.predictedClass;
                     confidenceElement.textContent = `可信度：${result.confidence}%`;
                     
-                    // 更新所有药材概率
                     Object.keys(probElements).forEach(herb => {
                         probElements[herb].textContent = `${result.probabilities[herb]}%`;
                     });
 
-                    // 高亮显示识别结果对应的药材
                     document.querySelectorAll('.prob-item').forEach(item => {
                         item.classList.remove('highlight');
                         if (item.dataset.herb === result.predictedClass) {
@@ -564,7 +609,6 @@
                         }
                     });
 
-                    // 显示药材知识和百科按钮
                     herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i>${herbKnowledge[result.predictedClass]}</p>`;
                     const wikiUrl = `https://baike.baidu.com/item/${encodeURIComponent(result.predictedClass)}`;
                     wikiBtn.href = wikiUrl;
@@ -591,17 +635,16 @@
             uploadedImage.style.display = 'none';
             mediaPlaceholder.classList.remove('hidden');
             
-            // 停止相机流
-            if (currentMode === 'camera' && webcamElement.srcObject) {
-                webcamElement.srcObject.getTracks().forEach(track => track.stop());
+            // 停止摄像头
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
                 webcam = null;
             }
             
-            // 重置概率显示
             Object.values(probElements).forEach(el => el.textContent = '--%');
             document.querySelectorAll('.prob-item').forEach(item => item.classList.remove('highlight'));
             
-            // 重置药材知识和百科按钮
             herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i> 识别结果后将显示对应药材的简要介绍</p>`;
             wikiBtn.classList.add('hidden');
             
@@ -612,17 +655,17 @@
             statusElement.textContent = '请选择识别方式（相机/上传图片）';
         });
 
-        // 移动端返回键处理
+        // 移动端返回键
         document.addEventListener('backbutton', () => {
             if (resultCard.classList.contains('show')) {
                 resetBtn.click();
             }
         });
 
-        // 窗口卸载时释放资源
+        // 释放资源
         window.addEventListener('beforeunload', () => {
-            if (webcamElement.srcObject) {
-                webcamElement.srcObject.getTracks().forEach(track => track.stop());
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
             }
             tf.disposeVariables();
             tf.memory().unreliableCheck(true);
