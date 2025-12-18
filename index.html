@@ -6,49 +6,22 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="format-detection" content="telephone=no">
-    <title>中药识别 - 模型修复版</title>
+    <title>中药识别 - 五味药材</title>
+    <!-- 核心样式优先加载 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <!-- 优先加载TF.js，确保全局可用 -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/dist/tf.min.js"></script>
+    <!-- TensorFlow.js 按需加载 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.14.0/dist/tf.min.js" defer></script>
     <style>
-        /* 保留原有样式，新增模型调试提示样式 */
-        .model-debug {
-            background: #fef3c7;
-            color: #92400e;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            margin: 10px 0;
-            display: none;
-        }
-        .model-path-setting {
-            margin: 10px 0;
-            padding: 10px;
-            background: #f1f5f9;
-            border-radius: 8px;
-            dark:bg-gray-800;
-        }
-        .model-path-setting input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-top: 5px;
-            dark:bg-gray-700;
-            dark:border-gray-600;
-            dark:color-white;
-        }
-        /* 原有样式省略（和之前一致） */
         body {
             background-color: #f5f5f5;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            touch-action: manipulation;
+            touch-action: manipulation; /* 禁用触屏双击缩放 */
         }
         .media-container {
             position: relative;
             width: 100%;
-            padding-top: 133%;
+            padding-top: 133%; /* 4:3比例 */
             overflow: hidden;
             border-radius: 16px;
             background-color: #000;
@@ -111,11 +84,13 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             background-color: #f0f9ff;
         }
+        /* 移动端按钮适配 */
         .mobile-btn {
-            min-height: 56px;
+            min-height: 56px; /* 符合移动端可点击区域标准 */
             min-width: 56px;
             font-size: 16px;
         }
+        /* 加载进度条 */
         .model-progress {
             height: 2px;
             background: #e5e7eb;
@@ -130,6 +105,7 @@
             width: 0%;
             transition: width 0.3s ease;
         }
+        /* 离线提示 */
         .offline-alert {
             background: #fef2f2;
             color: #dc2626;
@@ -140,6 +116,7 @@
             margin-bottom: 16px;
             display: none;
         }
+        /* 深色模式适配 */
         @media (prefers-color-scheme: dark) {
             body {
                 background-color: #1f2937;
@@ -167,25 +144,27 @@
                 background-color: #5865f2;
                 color: #fff;
             }
-            .search-container input {
+            .herb-info-container input {
                 background-color: #374151;
                 color: #fff;
                 border-color: #4b5563;
             }
-            .search-container button {
+            .herb-info-container button {
                 background-color: #5865f2;
                 color: #fff;
             }
-            .search-container {
+            .herb-info-container {
                 background-color: #374151;
             }
-            .platform-item {
-                background-color: #4b5563;
+            .herb-detail-card {
+                background-color: #374151;
+                color: #fff;
             }
-            .platform-item a {
-                color: #93c5fd;
+            .herb-image-container {
+                background-color: #2d3748;
             }
         }
+        /* 百科按钮样式 */
         .wiki-btn {
             display: inline-block;
             margin-top: 8px;
@@ -200,33 +179,33 @@
         .wiki-btn:hover {
             background-color: #2563eb;
         }
-        .search-container {
+        /* 中草药信息查询容器 */
+        .herb-info-container {
             margin-top: 20px;
             padding: 16px;
             background-color: white;
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        .search-container h3 {
+        .herb-info-container h3 {
             font-size: 18px;
             font-weight: 600;
             color: #166534;
             margin-bottom: 12px;
             text-align: center;
         }
-        .search-input-group {
+        .herb-input-group {
             display: flex;
             gap: 8px;
-            margin-bottom: 12px;
         }
-        .search-input-group input {
+        .herb-input-group input {
             flex: 1;
             padding: 12px 16px;
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             font-size: 16px;
         }
-        .search-input-group button {
+        .herb-input-group button {
             padding: 0 16px;
             background-color: #16a34a;
             color: white;
@@ -234,40 +213,76 @@
             border-radius: 8px;
             cursor: pointer;
         }
-        .search-status {
+        /* 加载状态提示 */
+        .info-loading {
             font-size: 12px;
             color: #6b7280;
             text-align: center;
-            margin-bottom: 10px;
+            margin-top: 8px;
             display: none;
         }
-        .platform-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 12px;
+        /* 中草药详情卡片 */
+        .herb-detail-card {
+            margin-top: 16px;
+            padding: 16px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: none;
         }
-        .platform-item {
-            padding: 10px 12px;
+        .herb-detail-card.show {
+            display: block;
+        }
+        .herb-detail-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #166534;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .herb-image-container {
+            width: 100%;
+            height: 200px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 12px;
             background-color: #f3f4f6;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-        .platform-item:hover {
-            background-color: #e5e7eb;
-        }
-        .platform-item a {
-            text-decoration: none;
-            color: #1e40af;
-            font-size: 14px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: center;
         }
-        .platform-desc {
-            font-size: 11px;
+        .herb-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .herb-image-placeholder {
             color: #6b7280;
-            margin-top: 4px;
+            text-align: center;
+            padding: 20px;
+        }
+        .herb-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+        .herb-source {
+            font-size: 12px;
+            color: #6b7280;
+            text-align: right;
+        }
+        .herb-source a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        /* 错误提示 */
+        .error-message {
+            font-size: 12px;
+            color: #dc2626;
+            text-align: center;
+            margin-top: 8px;
+            display: none;
         }
     </style>
 </head>
@@ -277,39 +292,29 @@
         <i class="fa fa-wifi-slash mr-1"></i> 检测到离线状态，模型加载失败
     </div>
 
-    <!-- 模型调试提示 -->
-    <div id="model-debug" class="model-debug">
-        <i class="fa fa-bug mr-1"></i> <span id="debug-text">模型加载调试信息</span>
-    </div>
-
-    <!-- 模型路径设置（方便调试） -->
-    <div class="model-path-setting">
-        <label class="text-sm font-medium">模型文件路径：</label>
-        <input type="text" id="model-path-input" value="model/model.json" placeholder="输入model.json的完整路径">
-        <button id="reload-model-btn" class="btn mt-2 w-full bg-blue-500 text-white py-2 rounded">
-            <i class="fa fa-refresh mr-1"></i> 重新加载模型
-        </button>
-    </div>
-
     <!-- 标题区域 -->
     <div class="text-center mb-6">
         <h1 class="text-[clamp(1.5rem,5vw,2rem)] font-bold text-green-700 dark:text-green-400">
             <i class="fa fa-leaf mr-2"></i>中药识别
         </h1>
         <p class="text-gray-500 dark:text-gray-300 text-sm">支持拍照或上传图片识别：枸杞、菊花、人参、甘草、金银花</p>
+        
+        <!-- 模型加载进度 -->
         <div class="model-progress mx-auto max-w-xs">
             <div id="progress-bar" class="progress-bar"></div>
         </div>
     </div>
 
-    <!-- 媒体展示区域/控制按钮/结果区域（和之前一致，省略） -->
+    <!-- 媒体展示区域 -->
     <div class="media-container mb-6 relative">
         <video id="webcam" autoplay muted playsinline style="display: none;"></video>
         <img id="uploaded-image" alt="上传的图片">
+        <!-- 初始提示 -->
         <div id="media-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-white">
             <i class="fa fa-camera text-5xl mb-3 opacity-70"></i>
             <p class="text-sm opacity-70">点击下方按钮选择识别方式</p>
         </div>
+        <!-- 加载遮罩 -->
         <div id="loading-mask" class="loading-mask hidden">
             <div class="flex flex-col items-center text-white">
                 <i class="fa fa-circle-o-notch loading-spinner text-4xl mb-2"></i>
@@ -318,10 +323,12 @@
         </div>
     </div>
 
+    <!-- 控制按钮 -->
     <div class="flex flex-wrap justify-center gap-3 mb-6">
         <button id="start-cam-btn" class="btn mobile-btn bg-blue-500 hover:bg-blue-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700">
             <i class="fa fa-video-camera mr-2"></i> 相机识别
         </button>
+        <!-- 新增反转镜头按钮 -->
         <button id="flip-cam-btn" class="btn mobile-btn bg-gray-500 hover:bg-gray-600 text-white px-5 py-3 rounded-full flex items-center shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed dark:bg-gray-700 dark:hover:bg-gray-600">
             <i class="fa fa-exchange mr-2"></i> 反转镜头
         </button>
@@ -334,12 +341,14 @@
         </button>
     </div>
 
+    <!-- 结果展示区域 -->
     <div id="result-card" class="result-card bg-white rounded-xl shadow-md p-5 mb-6 dark:bg-gray-800">
         <h2 class="text-xl font-semibold text-center mb-4 dark:text-white">识别结果</h2>
         <div class="text-center mb-4">
             <p id="prediction" class="text-[clamp(1.5rem,5vw,2rem)] font-bold text-purple-600 dark:text-purple-400">--</p>
             <p id="confidence" class="text-gray-500 dark:text-gray-300">可信度：--%</p>
         </div>
+        <!-- 概率分布（5种药材） -->
         <div class="grid grid-cols-2 gap-3 mb-2">
             <div class="prob-item bg-gray-50 p-3 rounded-lg dark:bg-gray-700" data-herb="枸杞">
                 <p class="text-sm text-gray-500 dark:text-gray-300">枸杞</p>
@@ -362,51 +371,64 @@
                 <p id="honeysuckle" class="font-bold text-green-500 dark:text-green-400">--%</p>
             </div>
         </div>
+        <!-- 药材小知识（新增百科按钮） -->
         <div id="herb-tips" class="mt-4 p-3 bg-gray-50 rounded-lg text-sm text-gray-600 dark:bg-gray-700 dark:text-gray-200">
             <p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i> 识别结果后将显示对应药材的简要介绍</p>
             <a id="wiki-btn" href="#" class="wiki-btn hidden" target="_blank">
-                <i class="fa fa-external-link mr-1"></i> 查看专业资料
+                <i class="fa fa-external-link mr-1"></i> 查看百度百科
             </a>
         </div>
+        <!-- 重新识别按钮 -->
         <button id="reset-btn" class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg btn mobile-btn dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500">
             <i class="fa fa-refresh mr-1"></i> 重新识别
         </button>
     </div>
 
+    <!-- 状态提示 -->
     <div id="status" class="text-center text-gray-500 dark:text-gray-300 text-sm py-2">
         <i class="fa fa-circle-o-notch fa-spin mr-1 loading-spinner"></i> 加载模型中...
     </div>
 
-    <div class="search-container" id="search-module">
-        <h3><i class="fa fa-search mr-2"></i>中药专业知识搜索</h3>
-        <div class="search-input-group">
-            <input type="text" id="herb-search-input" placeholder="输入中药名称或功效（如：黄芪、清热解毒）" autocomplete="off">
+    <!-- 中草药信息查询模块 -->
+    <div class="herb-info-container" id="herb-info-module">
+        <h3><i class="fa fa-book mr-2"></i>中草药百科查询</h3>
+        <div class="herb-input-group">
+            <input type="text" id="herb-name-input" placeholder="输入中草药名称（如：黄芪、当归）" autocomplete="off">
             <button id="herb-search-btn" class="btn mobile-btn">
                 <i class="fa fa-search"></i>
             </button>
         </div>
-        <div id="search-status" class="search-status">
-            <i class="fa fa-circle-o-notch fa-spin mr-1 loading-spinner"></i> 搜索中...
+        <div id="info-loading" class="info-loading">
+            <i class="fa fa-circle-o-notch fa-spin mr-1 loading-spinner"></i> 正在查询...
         </div>
-        <div class="platform-list" id="platform-list" style="display: none;">
-            <div class="platform-item">
-                <a href="#" target="_blank" id="plat-cacms">中国中医药网 <i class="fa fa-external-link"></i></a>
-                <p class="platform-desc">国家中医药管理局直属平台，权威药材信息</p>
-            </div>
-            <div class="platform-item">
-                <a href="#" target="_blank" id="plat-zyctd">中药材天地网 <i class="fa fa-external-link"></i></a>
-                <p class="platform-desc">中药材行情、产地、功效一站式查询</p>
-            </div>
-            <div class="platform-item">
-                <a href="#" target="_blank" id="plat-benchao">本草数典 <i class="fa fa-external-link"></i></a>
-                <p class="platform-desc">古籍文献收录，学术级中药知识库</p>
-            </div>
+        <div id="error-message" class="error-message">
+            <i class="fa fa-exclamation-circle mr-1"></i> 查询失败，请稍后重试
         </div>
     </div>
 
+    <!-- 中草药详情展示卡片 -->
+    <div id="herb-detail-card" class="herb-detail-card">
+        <h3 class="herb-detail-title" id="detail-title">中草药名称</h3>
+        <div class="herb-image-container">
+            <img id="detail-image" class="herb-image" alt="中草药图片">
+            <div id="image-placeholder" class="herb-image-placeholder">
+                <i class="fa fa-picture-o text-4xl mb-2"></i>
+                <p>暂无图片</p>
+            </div>
+        </div>
+        <div class="herb-content" id="detail-content">
+            中草药详细介绍将显示在这里...
+        </div>
+        <div class="herb-source" id="detail-source">
+            数据来源：<a href="#" target="_blank">百度百科</a>
+        </div>
+    </div>
+
+    <!-- 核心识别逻辑 - 优先加载 -->
     <script>
+        // ========== 识别核心模块（独立运行） ==========
         document.addEventListener('DOMContentLoaded', function() {
-            // ========== 核心修复：模型加载逻辑 ==========
+            // 药材知识库
             const herbKnowledge = {
                 枸杞: "枸杞：滋补肝肾，益精明目。用于虚劳精亏，腰膝酸痛，眩晕耳鸣，阳痿遗精，内热消渴，血虚萎黄，目昏不明。",
                 菊花: "菊花：散风清热，平肝明目，清热解毒。用于风热感冒，头痛眩晕，目赤肿痛，眼目昏花，疮痈肿毒。",
@@ -415,77 +437,49 @@
                 金银花: "金银花：清热解毒，疏散风热。用于痈肿疔疮，喉痹，丹毒，热毒血痢，风热感冒，温病发热。"
             };
 
+            // 模型处理核心类（扩展为5种药材）
             class HerbModelHandler {
-                constructor(classNames = ['枸杞', '菊花', '人参', '甘草', '金银花']) {
-                    this.modelUrl = ''; // 动态设置路径
+                constructor(modelUrl = 'model/model.json', classNames = ['枸杞', '菊花', '人参', '甘草', '金银花']) {
+                    this.modelUrl = modelUrl;
                     this.classNames = classNames;
                     this.model = null;
                     this.isLoaded = false;
                 }
 
-                // 动态设置模型路径
-                setModelUrl(url) {
-                    this.modelUrl = url;
-                    this.isLoaded = false; // 重置加载状态
-                }
-
-                // 修复模型加载逻辑：增加详细错误捕获
-                async loadModel(onProgress, onError) {
+                // 加载模型（带进度回调）
+                async loadModel(onProgress) {
                     try {
-                        // 1. 检测TF.js是否加载成功
-                        if (typeof tf === 'undefined') {
-                            throw new Error('TensorFlow.js 未加载，请检查网络或CDN链接');
-                        }
-
-                        // 2. 检测模型路径是否为空
-                        if (!this.modelUrl) {
-                            throw new Error('模型路径未设置，请在输入框中填写正确的model.json路径');
-                        }
-
-                        // 3. 检测是否为HTTP协议（避免CORS错误）
-                        if (window.location.protocol === 'file:') {
-                            onError && onError('本地直接打开HTML文件会导致跨域错误，请使用HTTP服务器运行（如VSCode Live Server）');
-                            return false;
-                        }
-
                         if (this.isLoaded) return true;
                         
-                        // TF.js 配置优化
+                        // 配置TF.js优化
                         tf.ENV.set('WEBGL_PACK_DEPTHWISECONV', false);
                         tf.ENV.set('WEBGL_FORCE_F16_TEXTURES', true);
-                        tf.ENV.set('WEBGL_DISABLE_DELETE_TEXTURE', true); // 减少内存占用
                         
-                        // 4. 尝试加载模型（增加超时处理）
-                        const loadPromise = tf.loadLayersModel(this.modelUrl, {
+                        // 监听模型加载进度
+                        const model = await tf.loadLayersModel(this.modelUrl, {
                             onProgress: (progress) => {
                                 onProgress && onProgress(Math.floor(progress * 100));
                             }
                         });
-
-                        // 超时控制（10秒）
-                        const timeoutPromise = new Promise((_, reject) => {
-                            setTimeout(() => reject(new Error('模型加载超时（10秒），请检查模型文件是否完整')), 10000);
-                        });
-
-                        const model = await Promise.race([loadPromise, timeoutPromise]);
                         
                         this.model = model;
                         this.isLoaded = true;
-                        console.log('✅ 模型加载成功');
+                        console.log('模型加载成功');
                         return true;
                     } catch (error) {
-                        console.error('❌ 模型加载失败：', error);
+                        console.error('模型加载失败：', error);
                         this.isLoaded = false;
-                        onError && onError(error.message);
                         return false;
                     }
                 }
 
+                // 图像预处理（优化移动端性能）
                 preprocessImage(imgTensor) {
                     return tf.tidy(() => {
                         const rgbTensor = imgTensor.shape[2] === 4 
                             ? imgTensor.slice([0, 0, 0], [-1, -1, 3]) 
                             : imgTensor;
+                        // 移动端使用更轻量的插值方式
                         return rgbTensor.resizeBilinear([224, 224])
                             .toFloat()
                             .div(255.0)
@@ -493,6 +487,7 @@
                     });
                 }
 
+                // 执行推理（适配5分类）
                 async predict(imgTensor) {
                     if (!this.isLoaded || !this.model) {
                         console.error('模型未加载');
@@ -504,6 +499,7 @@
                         const predictions = await this.model.predict(processedImg).data();
                         const scores = Array.from(predictions);
 
+                        // 归一化概率
                         const total = scores.reduce((a, b) => a + b, 0);
                         const normalizedScores = scores.map(s => total === 0 ? 0 : s / total);
 
@@ -531,11 +527,11 @@
                 }
             }
 
-            // ========== 初始化变量 ==========
+            // 全局变量
             const modelHandler = new HerbModelHandler();
             let webcam = null;
             let currentMode = null;
-            let currentCameraFacing = 'environment';
+            let currentCameraFacing = 'environment'; // 初始后置摄像头
 
             // DOM元素
             const startCamBtn = document.getElementById('start-cam-btn');
@@ -555,11 +551,8 @@
             const offlineAlert = document.getElementById('offline-alert');
             const herbTips = document.getElementById('herb-tips');
             const wikiBtn = document.getElementById('wiki-btn');
-            const modelDebug = document.getElementById('model-debug');
-            const debugText = document.getElementById('debug-text');
-            const modelPathInput = document.getElementById('model-path-input');
-            const reloadModelBtn = document.getElementById('reload-model-btn');
 
+            // 概率显示元素映射
             const probElements = {
                 枸杞: document.getElementById('wolfberry'),
                 菊花: document.getElementById('chrysanthemum'),
@@ -568,8 +561,7 @@
                 金银花: document.getElementById('honeysuckle')
             };
 
-            // ========== 事件监听 ==========
-            // 网络状态检测
+            // 检测网络状态
             window.addEventListener('online', () => {
                 offlineAlert.style.display = 'none';
             });
@@ -578,89 +570,43 @@
                 statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>网络已断开</span>`;
             });
 
-            // 模型加载失败提示
-            function showModelError(msg) {
-                modelDebug.style.display = 'block';
-                debugText.textContent = msg;
-                statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>模型加载失败：${msg}</span>`;
-            }
-
-            // 初始化模型
+            // 初始化模型（核心逻辑，独立执行）
             async function initModel() {
                 // 检测离线状态
                 if (!navigator.onLine) {
                     offlineAlert.style.display = 'block';
                 }
 
-                // 设置初始模型路径
-                modelHandler.setModelUrl(modelPathInput.value);
-
-                const loadSuccess = await modelHandler.loadModel(
-                    (progress) => {
-                        // 更新进度条
-                        progressBar.style.width = `${progress}%`;
-                        statusElement.textContent = `加载模型中... ${progress}%`;
-                        modelDebug.style.display = 'none'; // 隐藏调试提示
-                    },
-                    (errorMsg) => {
-                        // 显示错误提示
-                        showModelError(errorMsg);
-                    }
-                );
+                const loadSuccess = await modelHandler.loadModel((progress) => {
+                    // 更新加载进度
+                    progressBar.style.width = `${progress}%`;
+                    statusElement.textContent = `加载模型中... ${progress}%`;
+                });
                 
                 progressBar.style.width = '100%';
                 if (loadSuccess) {
-                    statusElement.textContent = '✅ 模型加载完成，请选择识别方式';
+                    statusElement.textContent = '模型加载完成，请选择识别方式';
                     startCamBtn.disabled = false;
                     imageUpload.disabled = false;
-                    modelDebug.style.display = 'none';
                 } else {
-                    startCamBtn.disabled = true;
-                    imageUpload.disabled = true;
+                    statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>模型加载失败：请检查model文件夹或网络</span>`;
                 }
+
+                // 初始化反转镜头按钮为禁用状态
                 flipCamBtn.disabled = true;
             }
 
-            // 重新加载模型按钮
-            reloadModelBtn.addEventListener('click', async () => {
-                // 重置状态
-                progressBar.style.width = '0%';
-                statusElement.innerHTML = '<i class="fa fa-circle-o-notch fa-spin mr-1 loading-spinner"></i> 重新加载模型中...';
-                modelDebug.style.display = 'none';
-
-                // 设置新路径
-                modelHandler.setModelUrl(modelPathInput.value);
-
-                // 重新加载
-                const loadSuccess = await modelHandler.loadModel(
-                    (progress) => {
-                        progressBar.style.width = `${progress}%`;
-                        statusElement.textContent = `重新加载模型中... ${progress}%`;
-                    },
-                    (errorMsg) => {
-                        showModelError(errorMsg);
-                    }
-                );
-
-                if (loadSuccess) {
-                    statusElement.textContent = '✅ 模型重新加载完成，请选择识别方式';
-                    startCamBtn.disabled = false;
-                    imageUpload.disabled = false;
-                } else {
-                    startCamBtn.disabled = true;
-                    imageUpload.disabled = true;
-                }
-            });
-
-            // 相机初始化
+            // 相机初始化通用方法
             async function initCamera(facingMode) {
                 try {
                     statusElement.textContent = `正在打开${facingMode === 'environment' ? '后置' : '前置'}摄像头...`;
                     
+                    // 停止现有相机流
                     if (webcamElement.srcObject) {
                         webcamElement.srcObject.getTracks().forEach(track => track.stop());
                     }
 
+                    // 配置相机参数
                     const constraints = {
                         video: { 
                             facingMode: facingMode,
@@ -687,7 +633,7 @@
                 }
             }
 
-            // 相机识别
+            // 相机识别模式
             startCamBtn.addEventListener('click', async () => {
                 currentMode = 'camera';
                 uploadedImage.style.display = 'none';
@@ -696,24 +642,26 @@
                 await initCamera('environment');
             });
 
-            // 反转镜头
+            // 反转镜头功能
             flipCamBtn.addEventListener('click', async () => {
                 const newFacingMode = currentCameraFacing === 'environment' ? 'user' : 'environment';
                 await initCamera(newFacingMode);
             });
 
-            // 上传图片
+            // 上传图片识别模式
             imageUpload.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
 
+                // 图片格式和大小校验
                 const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
                 if (!validTypes.includes(file.type)) {
                     statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>请上传JPG/PNG格式图片</span>`;
                     return;
                 }
                 
-                const maxSize = 5 * 1024 * 1024;
+                // 限制图片大小
+                const maxSize = 5 * 1024 * 1024; // 5MB
                 if (file.size > maxSize) {
                     statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>图片大小不超过5MB</span>`;
                     return;
@@ -737,10 +685,7 @@
 
             // 开始识别
             identifyBtn.addEventListener('click', async () => {
-                if (!modelHandler.isLoaded) {
-                    statusElement.innerHTML = `<span class="text-red-500 dark:text-red-400"><i class="fa fa-exclamation-circle mr-1"></i>模型未加载，无法识别</span>`;
-                    return;
-                }
+                if (!modelHandler.isLoaded) return;
 
                 loadingMask.classList.remove('hidden');
                 statusElement.textContent = '识别中...';
@@ -761,13 +706,16 @@
                     const result = await modelHandler.predict(imgTensor);
 
                     if (result) {
+                        // 更新识别结果
                         predictionElement.textContent = result.predictedClass;
                         confidenceElement.textContent = `可信度：${result.confidence}%`;
                         
+                        // 更新所有药材概率
                         Object.keys(probElements).forEach(herb => {
                             probElements[herb].textContent = `${result.probabilities[herb]}%`;
                         });
 
+                        // 高亮显示识别结果对应的药材
                         document.querySelectorAll('.prob-item').forEach(item => {
                             item.classList.remove('highlight');
                             if (item.dataset.herb === result.predictedClass) {
@@ -775,9 +723,10 @@
                             }
                         });
 
+                        // 显示药材知识和百科按钮
                         herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i>${herbKnowledge[result.predictedClass]}</p>`;
-                        // 专业网站链接
-                        const wikiUrl = `https://www.cacms.org.cn/search?keyword=${encodeURIComponent(result.predictedClass)}`;
+                        // 构建百度百科链接
+                        const wikiUrl = `https://baike.baidu.com/item/${encodeURIComponent(result.predictedClass)}`;
                         wikiBtn.href = wikiUrl;
                         wikiBtn.classList.remove('hidden');
                         herbTips.appendChild(wikiBtn);
@@ -802,14 +751,17 @@
                 uploadedImage.style.display = 'none';
                 mediaPlaceholder.classList.remove('hidden');
                 
+                // 停止相机流
                 if (currentMode === 'camera' && webcamElement.srcObject) {
                     webcamElement.srcObject.getTracks().forEach(track => track.stop());
                     webcam = null;
                 }
                 
+                // 重置概率显示
                 Object.values(probElements).forEach(el => el.textContent = '--%');
                 document.querySelectorAll('.prob-item').forEach(item => item.classList.remove('highlight'));
                 
+                // 重置药材知识和百科按钮
                 herbTips.innerHTML = `<p><i class="fa fa-info-circle mr-1 text-blue-500 dark:text-blue-400"></i> 识别结果后将显示对应药材的简要介绍</p>`;
                 wikiBtn.classList.add('hidden');
                 
@@ -820,92 +772,157 @@
                 statusElement.textContent = '请选择识别方式（相机/上传图片）';
             });
 
-            // 移动端返回键
+            // 移动端返回键处理
             document.addEventListener('backbutton', () => {
                 if (resultCard.classList.contains('show')) {
                     resetBtn.click();
                 }
             });
 
-            // 资源释放
+            // 窗口卸载时释放资源
             window.addEventListener('beforeunload', () => {
                 if (webcamElement.srcObject) {
                     webcamElement.srcObject.getTracks().forEach(track => track.stop());
                 }
-                if (tf) {
-                    tf.disposeVariables();
-                    tf.memory().unreliableCheck(true);
-                }
+                tf.disposeVariables();
+                tf.memory().unreliableCheck(true);
             });
 
-            // 初始化模型
+            // 初始化模型（核心逻辑优先执行）
             initModel();
         });
     </script>
 
-    <!-- 搜索引擎模块（无改动） -->
+    <!-- 中草药百科查询模块 - 延迟加载 -->
     <script defer>
+        // ========== 中草药百科查询模块 ==========
         document.addEventListener('DOMContentLoaded', function() {
-            const herbSearchInput = document.getElementById('herb-search-input');
+            // DOM元素
+            const herbNameInput = document.getElementById('herb-name-input');
             const herbSearchBtn = document.getElementById('herb-search-btn');
-            const searchStatus = document.getElementById('search-status');
-            const platformList = document.getElementById('platform-list');
-            
-            const platformUrls = {
-                cacms: 'https://www.cacms.org.cn/search?keyword={KEYWORD}',
-                zyctd: 'https://www.zyctd.com/yaocai/{KEYWORD}.html',
-                benchao: 'https://www.benchao.com/search?wd={KEYWORD}' // 替换为真实地址
-            };
+            const infoLoading = document.getElementById('info-loading');
+            const errorMessage = document.getElementById('error-message');
+            const herbDetailCard = document.getElementById('herb-detail-card');
+            const detailTitle = document.getElementById('detail-title');
+            const detailImage = document.getElementById('detail-image');
+            const imagePlaceholder = document.getElementById('image-placeholder');
+            const detailContent = document.getElementById('detail-content');
+            const detailSource = document.getElementById('detail-source');
 
-            function searchHerb() {
-                const keyword = herbSearchInput.value.trim();
-                if (!keyword) {
-                    searchStatus.textContent = '请输入中药名称或功效';
-                    searchStatus.style.display = 'block';
-                    searchStatus.style.color = '#dc2626';
+            // 清理HTML标签的工具函数
+            function stripHtmlTags(html) {
+                if (!html) return '';
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                return tempDiv.textContent || tempDiv.innerText || '';
+            }
+
+            // 截取文本长度的工具函数
+            function truncateText(text, maxLength = 500) {
+                if (text.length <= maxLength) return text;
+                return text.substring(0, maxLength) + '...';
+            }
+
+            // 查询中草药信息
+            async function queryHerbInfo(herbName) {
+                if (!herbName) return;
+                
+                // 显示加载状态
+                infoLoading.style.display = 'block';
+                errorMessage.style.display = 'none';
+                herbDetailCard.classList.remove('show');
+
+                try {
+                    // 使用百度百科API获取信息（这里使用通用的百科数据接口）
+                    // 注意：实际使用时需要替换为合法的API接口
+                    const apiUrl = `https://baike.baidu.com/api/openapi/BaikeLemmaCardApi?bk_key=${encodeURIComponent(herbName)}&bk_length=600&pn=0&rn=1`;
+                    
+                    const response = await fetch(apiUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'User-Agent': 'Mozilla/5.0 (Mobile; Android) AppleWebKit/537.36'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP错误：${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    // 处理返回数据
+                    if (data && data.card) {
+                        const card = data.card[0];
+                        const title = card.title || herbName;
+                        const content = stripHtmlTags(card.summary || '暂无详细介绍');
+                        const imageUrl = card.image ? card.image[0] : '';
+                        const baikeUrl = `https://baike.baidu.com/item/${encodeURIComponent(title)}`;
+
+                        // 更新详情卡片
+                        detailTitle.textContent = title;
+                        detailContent.textContent = truncateText(content);
+                        
+                        // 处理图片
+                        if (imageUrl) {
+                            detailImage.src = imageUrl;
+                            detailImage.style.display = 'block';
+                            imagePlaceholder.style.display = 'none';
+                        } else {
+                            detailImage.style.display = 'none';
+                            imagePlaceholder.style.display = 'flex';
+                        }
+                        
+                        // 更新来源链接
+                        detailSource.innerHTML = `数据来源：<a href="${baikeUrl}" target="_blank">百度百科</a>`;
+                        
+                        // 显示详情卡片
+                        herbDetailCard.classList.add('show');
+                    } else {
+                        // 无数据时的处理
+                        detailTitle.textContent = herbName;
+                        detailContent.textContent = '未找到该中草药的相关信息';
+                        detailImage.style.display = 'none';
+                        imagePlaceholder.style.display = 'flex';
+                        detailSource.innerHTML = '数据来源：<a href="https://baike.baidu.com" target="_blank">百度百科</a>';
+                        herbDetailCard.classList.add('show');
+                    }
+                } catch (error) {
+                    console.error('查询中草药信息失败：', error);
+                    errorMessage.style.display = 'block';
                     setTimeout(() => {
-                        searchStatus.style.display = 'none';
+                        errorMessage.style.display = 'none';
+                    }, 3000);
+                } finally {
+                    infoLoading.style.display = 'none';
+                }
+            }
+
+            // 搜索按钮点击事件
+            herbSearchBtn.addEventListener('click', () => {
+                const herbName = herbNameInput.value.trim();
+                if (!herbName) {
+                    errorMessage.textContent = '请输入中草药名称';
+                    errorMessage.style.display = 'block';
+                    setTimeout(() => {
+                        errorMessage.style.display = 'none';
                     }, 2000);
                     return;
                 }
-
-                searchStatus.style.display = 'block';
-                searchStatus.style.color = '#6b7280';
-
-                setTimeout(() => {
-                    try {
-                        document.getElementById('plat-cacms').href = platformUrls.cacms.replace('{KEYWORD}', encodeURIComponent(keyword));
-                        document.getElementById('plat-zyctd').href = platformUrls.zyctd.replace('{KEYWORD}', encodeURIComponent(keyword));
-                        document.getElementById('plat-benchao').href = platformUrls.benchao.replace('{KEYWORD}', encodeURIComponent(keyword));
-                        platformList.style.display = 'flex';
-                        searchStatus.style.display = 'none';
-                    } catch (error) {
-                        searchStatus.textContent = '搜索失败：' + error.message;
-                        searchStatus.style.color = '#dc2626';
-                        setTimeout(() => {
-                            searchStatus.style.display = 'none';
-                        }, 3000);
-                    }
-                }, 300);
-            }
-
-            herbSearchBtn.addEventListener('click', searchHerb);
-            herbSearchInput.addEventListener('keypress', (e) => {
+                queryHerbInfo(herbName);
+            });
+            
+            // 输入框回车事件
+            herbNameInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    searchHerb();
+                    herbSearchBtn.click();
                 }
             });
 
-            window.addEventListener('error', (e) => {
-                if (e.target === herbSearchBtn || e.target === herbSearchInput) {
-                    console.error('搜索引擎错误：', e.error);
-                    searchStatus.textContent = '搜索功能异常，请重试';
-                    searchStatus.style.color = '#dc2626';
-                    searchStatus.style.display = 'block';
-                    setTimeout(() => {
-                        searchStatus.style.display = 'none';
-                    }, 3000);
-                }
+            // 图片加载失败处理
+            detailImage.addEventListener('error', () => {
+                detailImage.style.display = 'none';
+                imagePlaceholder.style.display = 'flex';
             });
         });
     </script>
